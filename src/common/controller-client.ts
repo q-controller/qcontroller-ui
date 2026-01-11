@@ -42,12 +42,12 @@ export const controllerClient = {
     });
   },
 
-  async stop(name: string): Promise<void> {
+  async stop(name: string, force: boolean = false): Promise<void> {
     await controllerApi.controllerServiceStop({
       name: name,
       servicesV1StopRequest: {
         name: name,
-        force: false,
+        force: force,
       },
     });
   },
