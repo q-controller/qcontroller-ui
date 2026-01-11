@@ -80,6 +80,11 @@ export default function Instance() {
     try {
       if (!instanceName) return;
       await controllerClient.start(instanceName);
+      notifications.show({
+        title: 'Success',
+        message: `Instance ${instanceName} started`,
+        color: 'green',
+      });
     } catch {
       notifications.show({
         title: 'Error',
@@ -89,14 +94,14 @@ export default function Instance() {
     }
   };
 
-  const handleStop = async () => {
+  const handleStop = async (force: boolean = false) => {
     try {
       if (!instanceName) return;
-      await controllerClient.stop(instanceName);
+      await controllerClient.stop(instanceName, force);
     } catch {
       notifications.show({
         title: 'Error',
-        message: `Failed to stop instance ${instanceName}`,
+        message: `Failed to ${force ? 'force ' : ''}stop instance ${instanceName}`,
         color: 'red',
       });
     }
@@ -176,15 +181,26 @@ export default function Instance() {
               <IconPlayerPlay size={18} />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label="Stop">
+          <Tooltip label="Stop (soft)">
             <ActionIcon
               variant="filled"
               color="red"
               size="lg"
-              onClick={handleStop}
+              onClick={() => handleStop(false)}
               disabled={stateFromJSON(state.state) === State.STATE_STOPPED}
             >
               <IconPlayerStop size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Force Stop">
+            <ActionIcon
+              variant="outline"
+              color="red"
+              size="lg"
+              onClick={() => handleStop(true)}
+              disabled={stateFromJSON(state.state) === State.STATE_STOPPED}
+            >
+              <IconPlayerStop size={16} />
             </ActionIcon>
           </Tooltip>
           <Tooltip label="Delete">
