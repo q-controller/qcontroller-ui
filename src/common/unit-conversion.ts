@@ -29,7 +29,7 @@ export const convertFromMB = (mb: number, unit: MemoryUnit): number => {
  * @returns Value in megabytes
  */
 export const convertToMB = (value: number, unit: MemoryUnit): number => {
-  return value * getUnitMultiplier(unit);
+  return Math.round(value * getUnitMultiplier(unit));
 };
 
 /**
