@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import type { ServicesV1CreateRequest } from '@/common/controller-client';
 import {
   Card,
   TextInput,
@@ -11,6 +10,8 @@ import {
   Checkbox,
   Select,
 } from '@mantine/core';
+import type { ServicesV1CreateRequest } from '@/common/controller-client';
+const YamlEditor = React.lazy(() => import('@/components/YamlEditor'));
 import { IconPlus } from '@tabler/icons-react';
 import { controllerClient } from '@/common/controller-client';
 import { imageClient } from '@/common/image-client';
@@ -31,6 +32,7 @@ const defaultForm: ServicesV1CreateRequest = {
     disk: convertToMB(40, 'G'), // 40GB
     memory: convertToMB(1, 'G'), // 1GB
   },
+  userdata: '',
 };
 
 export default function CreateVMWidget() {
@@ -107,6 +109,12 @@ export default function CreateVMWidget() {
             setForm((f) => ({ ...f, start: e.currentTarget.checked }))
           }
           disabled={loading}
+        />
+        <YamlEditor
+          value={form.userdata || ''}
+          onChange={(val) => setForm((f) => ({ ...f, userdata: val }))}
+          editable={!loading}
+          label="Cloud-init User-data (YAML)"
         />
         <NumberInput
           label="CPUs"
