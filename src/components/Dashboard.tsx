@@ -6,7 +6,7 @@ import {
   IconDatabase,
   IconStack,
 } from '@tabler/icons-react';
-import CreateVMWidget from '@/components/CreateVM';
+const CreateVMWidget = React.lazy(() => import('@/components/CreateVM'));
 import ResourcePieCharts from '@/components/ResourcePieCharts';
 import StatCard from './StatCard';
 import type { ServicesV1Info } from '@/common/controller-client';

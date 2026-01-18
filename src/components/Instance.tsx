@@ -1,3 +1,5 @@
+import React from 'react';
+const YamlEditor = React.lazy(() => import('@/components/YamlEditor'));
 import { useCallback, useContext, useEffect, useReducer } from 'react';
 import { useParams } from 'react-router';
 import {
@@ -280,6 +282,39 @@ export default function Instance() {
                         {prettyBytes(mbToBytes(state.details.disk), {
                           binary: true,
                         })}
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
+                  {state.hwaddr && (
+                    <Table.Tr>
+                      <Table.Td fw={500} w="40%">
+                        MAC Address
+                      </Table.Td>
+                      <Table.Td style={{ wordBreak: 'break-word' }}>
+                        <Group gap="xs">
+                          <Badge
+                            color="blue"
+                            variant="light"
+                            radius="sm"
+                            style={{ fontFamily: 'monospace' }}
+                          >
+                            {state.hwaddr}
+                          </Badge>
+                        </Group>
+                      </Table.Td>
+                    </Table.Tr>
+                  )}
+                  {state.userdata && (
+                    <Table.Tr>
+                      <Table.Td fw={500} w="40%">
+                        Cloud-init user-data (YAML)
+                      </Table.Td>
+                      <Table.Td style={{ wordBreak: 'break-word' }}>
+                        <YamlEditor
+                          value={state.userdata || ''}
+                          editable={false}
+                          onChange={() => {}}
+                        />
                       </Table.Td>
                     </Table.Tr>
                   )}
