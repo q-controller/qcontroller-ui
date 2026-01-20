@@ -251,7 +251,7 @@ export default function Instance() {
               Configuration:
             </Text>
             <Card withBorder radius="sm" p="sm">
-              <Table>
+              <Table style={{ tableLayout: 'fixed', width: '100%' }}>
                 <Table.Tbody>
                   {state.details.cpus && (
                     <Table.Tr>
@@ -304,17 +304,26 @@ export default function Instance() {
                       </Table.Td>
                     </Table.Tr>
                   )}
-                  {state.userdata && (
+                  {state.cloudInit && (
                     <Table.Tr>
-                      <Table.Td fw={500} w="40%">
-                        Cloud-init user-data (YAML)
-                      </Table.Td>
-                      <Table.Td style={{ wordBreak: 'break-word' }}>
-                        <YamlEditor
-                          value={state.userdata || ''}
-                          editable={false}
-                          onChange={() => {}}
-                        />
+                      <Table.Td w="40%">Cloud-init</Table.Td>
+                      <Table.Td style={{ minWidth: 0 }}>
+                        <Stack gap="xs" style={{ width: '100%' }}>
+                          <YamlEditor
+                            label="User-data"
+                            value={state?.cloudInit?.userdata || ''}
+                            editable={false}
+                            onChange={() => {}}
+                            style={{ minWidth: 0, width: '100%' }}
+                          />
+                          <YamlEditor
+                            label="Network config"
+                            value={state?.cloudInit?.networkConfig || ''}
+                            editable={false}
+                            onChange={() => {}}
+                            style={{ minWidth: 0, width: '100%' }}
+                          />
+                        </Stack>
                       </Table.Td>
                     </Table.Tr>
                   )}
