@@ -32,7 +32,10 @@ const defaultForm: ServicesV1CreateRequest = {
     disk: convertToMB(40, 'G'), // 40GB
     memory: convertToMB(1, 'G'), // 1GB
   },
-  userdata: '',
+  cloudInit: {
+    networkConfig: '',
+    userdata: '',
+  },
 };
 
 export default function CreateVMWidget() {
@@ -110,12 +113,30 @@ export default function CreateVMWidget() {
           }
           disabled={loading}
         />
-        <YamlEditor
-          value={form.userdata || ''}
-          onChange={(val) => setForm((f) => ({ ...f, userdata: val }))}
-          editable={!loading}
-          label="Cloud-init User-data (YAML)"
-        />
+        <Stack gap="xs">
+          <YamlEditor
+            value={form?.cloudInit?.userdata || ''}
+            onChange={(val) =>
+              setForm((f) => ({
+                ...f,
+                cloudInit: { ...f.cloudInit, userdata: val },
+              }))
+            }
+            editable={!loading}
+            label="Cloud-init user-data (YAML)"
+          />
+          <YamlEditor
+            value={form?.cloudInit?.networkConfig || ''}
+            onChange={(val) =>
+              setForm((f) => ({
+                ...f,
+                cloudInit: { ...f.cloudInit, networkConfig: val },
+              }))
+            }
+            editable={!loading}
+            label="Cloud-init network-config (YAML)"
+          />
+        </Stack>
         <NumberInput
           label="CPUs"
           placeholder="Number of CPUs"
