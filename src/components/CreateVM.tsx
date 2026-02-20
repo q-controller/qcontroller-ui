@@ -83,7 +83,7 @@ export default function CreateVMWidget() {
           label="Image"
           placeholder="Select image"
           data={imageOptions}
-          value={form.image || ''}
+          value={form.image || null}
           onChange={(val) => setForm((f) => ({ ...f, image: val || '' }))}
           disabled={loading}
           required
