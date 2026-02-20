@@ -1,5 +1,5 @@
-import type { SettingsV1VM } from '@/common/controller-client';
+import type { ServicesV1Info } from '@/common/controller-client';
 
 export interface Stats {
-  [key: string]: SettingsV1VM;
+  [key: string]: ServicesV1Info;
 }

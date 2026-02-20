@@ -81,7 +81,7 @@ export default function App() {
           if (updates.vmEvent?.info) {
             dispatch({
               type: VMEvent_EventType.EVENT_TYPE_UPDATED,
-              payload: [updates.vmEvent.info],
+              payload: [updates.vmEvent.info as ServicesV1Info],
             });
           }
           break;

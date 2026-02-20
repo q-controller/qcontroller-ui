@@ -39,7 +39,7 @@ function vmsReducer(state: Stats, action: UpdateAction | RemoveAction) {
       }
 
       const newState = { ...state };
-      newState[action.payload.name] = action.payload.details;
+      newState[action.payload.name] = action.payload;
       return newState;
     }
     case VMEvent_EventType.EVENT_TYPE_REMOVED: {
@@ -120,19 +120,19 @@ export default function Dashboard() {
           />
           <StatCard
             title="Total CPUs"
-            value={`${Object.values(vms).reduce((sum, vm) => sum + (vm.cpus || 0), 0)}`}
+            value={`${Object.values(vms).reduce((sum, vm) => sum + (vm.details?.cpus || 0), 0)}`}
             icon={<IconCpu size={20} />}
             color="green"
           />
           <StatCard
             title="Total Storage"
-            value={`${prettyBytes(mbToBytes(Object.values(vms).reduce((sum, vm) => sum + (vm.disk || 0), 0)), { binary: true })}`}
+            value={`${prettyBytes(mbToBytes(Object.values(vms).reduce((sum, vm) => sum + (vm.details?.disk || 0), 0)), { binary: true })}`}
             icon={<IconDatabase size={20} />}
             color="orange"
           />
           <StatCard
             title="Total RAM"
-            value={`${prettyBytes(mbToBytes(Object.values(vms).reduce((sum, vm) => sum + (vm.memory || 0), 0)), { binary: true })}`}
+            value={`${prettyBytes(mbToBytes(Object.values(vms).reduce((sum, vm) => sum + (vm.details?.memory || 0), 0)), { binary: true })}`}
             icon={<IconStack size={20} />}
             color="red"
           />
