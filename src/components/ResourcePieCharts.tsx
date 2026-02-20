@@ -19,6 +19,14 @@ import {
 } from '@tabler/icons-react';
 import type { Stats } from '@/common/stats';
 import { mbToGB } from '@/common/unit-conversion';
+import prettyBytes from 'pretty-bytes';
+
+interface VMData {
+  label: string;
+  value: number;
+  color: string;
+  used?: number;
+}
 
 function ResourceCard({
   title,
@@ -28,7 +36,7 @@ function ResourceCard({
 }: {
   title: string;
   icon: React.ReactNode;
-  data: { label: string; value: number; color: string }[];
+  data: VMData[];
   unit: string;
   color: string;
 }) {
@@ -44,6 +52,11 @@ function ResourceCard({
       <Stack gap="xs">
         {data.map((item) => {
           const percentage = total > 0 ? (item.value / total) * 100 : 0;
+          const hasUsage = item.used !== undefined;
+          const usedPct = hasUsage
+            ? Math.min((item.used! / item.value) * 100, 100)
+            : 0;
+
           return (
             <div key={item.label}>
               <Group justify="space-between" mb={4} wrap="wrap" gap="xs">
@@ -54,16 +67,32 @@ function ResourceCard({
                   </Text>
                 </Group>
                 <Text size="sm" fw={500} style={{ flexShrink: 0 }}>
-                  {item.value}
-                  {unit}
+                  {hasUsage ? (
+                    <>
+                      {prettyBytes(item.used!, { binary: true })} /{' '}
+                      {prettyBytes(item.value, { binary: true })}
+                    </>
+                  ) : (
+                    <>
+                      {item.value}
+                      {unit}
+                    </>
+                  )}
                 </Text>
               </Group>
-              <Progress
-                value={percentage}
-                color={item.color}
-                size="sm"
-                radius="xl"
-              />
+              {hasUsage ? (
+                <Progress.Root size="sm" radius="xl">
+                  <Progress.Section value={usedPct} color={item.color} />
+                  <Progress.Section value={100 - usedPct} color="gray.2" />
+                </Progress.Root>
+              ) : (
+                <Progress
+                  value={percentage}
+                  color={item.color}
+                  size="sm"
+                  radius="xl"
+                />
+              )}
             </div>
           );
         })}
@@ -76,8 +105,9 @@ function ResourceCard({
         >
           <Text fw={700}>Total</Text>
           <Text fw={700}>
-            {total}
-            {unit}
+            {data.some((d) => d.used !== undefined)
+              ? prettyBytes(total, { binary: true })
+              : `${total}${unit}`}
           </Text>
         </Group>
       </Stack>
@@ -92,12 +122,6 @@ function getRandomColor() {
     color += letters[Math.floor(Math.random() * 16)];
   }
   return color;
-}
-
-interface VMData {
-  label: string;
-  value: number;
-  color: string;
 }
 
 export default function ResourcePieCharts({ vms }: { vms: Stats }) {
@@ -128,19 +152,29 @@ export default function ResourcePieCharts({ vms }: { vms: Stats }) {
   for (const name of Object.keys(vms)) {
     const vm = vms[name];
     const color = colors[name];
+    const allocatedBytes = (vm.details?.memory || 0) * 1024 * 1024;
+    const memStats = vm.runtimeInfo?.memoryStats;
+    const usedBytes =
+      memStats?.totalMemory && memStats?.freeMemory && memStats?.diskCaches
+        ? Number(memStats.totalMemory) -
+          Number(memStats.freeMemory) -
+          Number(memStats.diskCaches)
+        : 0;
+
     ramData.push({
       label: name,
-      value: mbToGB(vm.memory || 0),
+      value: allocatedBytes,
       color,
+      used: usedBytes,
     });
     diskData.push({
       label: name,
-      value: mbToGB(vm.disk || 0),
+      value: mbToGB(vm.details?.disk || 0),
       color,
     });
     cpusData.push({
       label: name,
-      value: vm.cpus || 0,
+      value: vm.details?.cpus || 0,
       color,
     });
   }

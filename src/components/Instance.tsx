@@ -150,7 +150,7 @@ export default function Instance() {
         type: VMEvent_EventType.EVENT_TYPE_UPDATED,
         payload: {
           details: updates?.vmEvent?.info?.details,
-          ipaddresses: updates?.vmEvent?.info?.ipaddresses,
+          runtimeInfo: updates?.vmEvent?.info?.runtimeInfo,
           name: updates?.vmEvent?.info?.name,
           state: updates?.vmEvent?.info?.state,
         } as ServicesV1Info,
@@ -230,20 +230,23 @@ export default function Instance() {
           {getStatusBadge(state.state ?? 'Unknown')}
         </Group>
 
-        {state.ipaddresses && state.ipaddresses.length > 0 && (
-          <Group wrap="wrap" gap="sm">
-            <Text fw={500} style={{ flexShrink: 0 }}>
-              IP Addresses:
-            </Text>
-            <Group gap="xs" style={{ flex: 1 }}>
-              {state.ipaddresses.map((ip, index) => (
-                <Badge key={index} variant="light" color="blue">
-                  {ip}
-                </Badge>
-              ))}
+        {state.runtimeInfo?.ipaddresses &&
+          state.runtimeInfo.ipaddresses.length > 0 && (
+            <Group wrap="wrap" gap="sm">
+              <Text fw={500} style={{ flexShrink: 0 }}>
+                IP Addresses:
+              </Text>
+              <Group gap="xs" style={{ flex: 1 }}>
+                {state.runtimeInfo.ipaddresses.map(
+                  (ip: string, index: number) => (
+                    <Badge key={index} variant="light" color="blue">
+                      {ip}
+                    </Badge>
+                  )
+                )}
+              </Group>
             </Group>
-          </Group>
-        )}
+          )}
 
         {state.details && (
           <div>
