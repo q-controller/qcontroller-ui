@@ -7,16 +7,11 @@ import {
   Progress,
   Text,
   Badge,
-  ActionIcon,
-  Indicator,
+  RingProgress,
+  SimpleGrid,
+  ThemeIcon,
 } from '@mantine/core';
-import {
-  IconCpu,
-  IconDatabase,
-  IconDeviceDesktop,
-  IconChevronLeft,
-  IconChevronRight,
-} from '@tabler/icons-react';
+import { IconCpu, IconDatabase, IconDeviceDesktop } from '@tabler/icons-react';
 import type { Stats } from '@/common/stats';
 import prettyBytes from 'pretty-bytes';
 
@@ -32,6 +27,7 @@ function ResourceCard({
   icon,
   data,
   unit,
+  color,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -39,7 +35,13 @@ function ResourceCard({
   unit: string;
   color: string;
 }) {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const totalAllocated = data.reduce((sum, item) => sum + item.value, 0);
+  const totalUsed = data.reduce((sum, item) => sum + (item.used || 0), 0);
+  const hasUsage = data.some((d) => d.used !== undefined && d.used > 0);
+  const usedPct =
+    hasUsage && totalAllocated > 0
+      ? Math.round(Math.min((totalUsed / totalAllocated) * 100, 100))
+      : 0;
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
@@ -48,13 +50,51 @@ function ResourceCard({
         <Title order={4}>{title}</Title>
       </Group>
 
+      <Stack align="center" mb="md">
+        {hasUsage ? (
+          <>
+            <RingProgress
+              size={120}
+              thickness={12}
+              roundCaps
+              sections={[{ value: usedPct, color }]}
+              label={
+                <Text ta="center" fw={700} size="lg">
+                  {usedPct}%
+                </Text>
+              }
+            />
+            <Text size="sm" c="dimmed">
+              {prettyBytes(totalUsed, { binary: true })} of{' '}
+              {prettyBytes(totalAllocated, { binary: true })}
+            </Text>
+          </>
+        ) : (
+          <>
+            <ThemeIcon color={color} size={64} radius="xl" variant="light">
+              {icon}
+            </ThemeIcon>
+            <Text fw={700} size="xl">
+              {data.some((d) => d.used !== undefined)
+                ? prettyBytes(totalAllocated, { binary: true })
+                : `${totalAllocated}${unit}`}
+            </Text>
+            <Text size="sm" c="dimmed">
+              allocated
+            </Text>
+          </>
+        )}
+      </Stack>
+
       <Stack gap="xs">
         {data.map((item) => {
-          const percentage = total > 0 ? (item.value / total) * 100 : 0;
-          const hasUsage = item.used !== undefined;
-          const usedPct = hasUsage
-            ? Math.min((item.used! / item.value) * 100, 100)
-            : 0;
+          const hasItemUsage = item.used !== undefined && item.used > 0;
+          const itemUsedPct =
+            hasItemUsage && item.value > 0
+              ? Math.round(Math.min((item.used! / item.value) * 100, 100))
+              : 0;
+          const allocationPct =
+            totalAllocated > 0 ? (item.value / totalAllocated) * 100 : 0;
 
           return (
             <div key={item.label}>
@@ -66,49 +106,22 @@ function ResourceCard({
                   </Text>
                 </Group>
                 <Text size="sm" fw={500} style={{ flexShrink: 0 }}>
-                  {hasUsage ? (
-                    <>
-                      {prettyBytes(item.used!, { binary: true })} /{' '}
-                      {prettyBytes(item.value, { binary: true })}
-                    </>
-                  ) : (
-                    <>
-                      {item.value}
-                      {unit}
-                    </>
-                  )}
+                  {hasItemUsage
+                    ? `${prettyBytes(item.used!, { binary: true })} / ${prettyBytes(item.value, { binary: true })}`
+                    : item.used !== undefined
+                      ? prettyBytes(item.value, { binary: true })
+                      : `${item.value}${unit}`}
                 </Text>
               </Group>
-              {hasUsage ? (
-                <Progress.Root size="sm" radius="xl">
-                  <Progress.Section value={usedPct} color={item.color} />
-                  <Progress.Section value={100 - usedPct} color="gray.2" />
-                </Progress.Root>
-              ) : (
-                <Progress
-                  value={percentage}
-                  color={item.color}
-                  size="sm"
-                  radius="xl"
-                />
-              )}
+              <Progress
+                value={hasItemUsage ? itemUsedPct : allocationPct}
+                color={item.color}
+                size="sm"
+                radius="xl"
+              />
             </div>
           );
         })}
-
-        <Group
-          justify="space-between"
-          mt="md"
-          pt="md"
-          style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}
-        >
-          <Text fw={700}>Total</Text>
-          <Text fw={700}>
-            {data.some((d) => d.used !== undefined)
-              ? prettyBytes(total, { binary: true })
-              : `${total}${unit}`}
-          </Text>
-        </Group>
       </Stack>
     </Card>
   );
@@ -124,7 +137,6 @@ function getRandomColor() {
 }
 
 export default function ResourcePieCharts({ vms }: { vms: Stats }) {
-  const [activeIndex, setActiveIndex] = useState(0);
   const [colors, setColors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -187,37 +199,27 @@ export default function ResourcePieCharts({ vms }: { vms: Stats }) {
 
   const charts = [
     {
-      title: 'Memory Usage',
+      title: 'Memory',
       icon: <IconDeviceDesktop size={20} />,
       data: ramData,
       unit: ' GB',
       color: 'blue',
     },
     {
-      title: 'Storage Usage',
+      title: 'Storage',
       icon: <IconDatabase size={20} />,
       data: diskData,
       unit: ' GB',
       color: 'green',
     },
     {
-      title: 'CPU Allocation',
+      title: 'CPU',
       icon: <IconCpu size={20} />,
       data: cpusData,
       unit: ' cores',
       color: 'orange',
     },
   ];
-
-  const nextChart = () => {
-    setActiveIndex((prev) => (prev + 1) % charts.length);
-  };
-
-  const prevChart = () => {
-    setActiveIndex((prev) => (prev - 1 + charts.length) % charts.length);
-  };
-
-  const currentChart = charts[activeIndex];
 
   // Handle empty state
   if (Object.keys(vms).length === 0) {
@@ -234,39 +236,17 @@ export default function ResourcePieCharts({ vms }: { vms: Stats }) {
   }
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <Group justify="space-between" align="center" mb="lg" wrap="wrap">
-        <Title order={3}>Resource Usage</Title>
-        {charts.length > 1 && (
-          <Group gap="xs" style={{ flexShrink: 0 }}>
-            <ActionIcon variant="light" size="sm" onClick={prevChart}>
-              <IconChevronLeft size={16} />
-            </ActionIcon>
-            <Group gap={4}>
-              {charts.map((_, index) => (
-                <Indicator
-                  key={index}
-                  size={8}
-                  color={index === activeIndex ? 'blue' : 'gray'}
-                  onClick={() => setActiveIndex(index)}
-                  style={{ cursor: 'pointer' }}
-                />
-              ))}
-            </Group>
-            <ActionIcon variant="light" size="sm" onClick={nextChart}>
-              <IconChevronRight size={16} />
-            </ActionIcon>
-          </Group>
-        )}
-      </Group>
-
-      <ResourceCard
-        title={currentChart.title}
-        icon={currentChart.icon}
-        data={currentChart.data}
-        unit={currentChart.unit}
-        color={currentChart.color}
-      />
-    </Card>
+    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
+      {charts.map((chart) => (
+        <ResourceCard
+          key={chart.title}
+          title={chart.title}
+          icon={chart.icon}
+          data={chart.data}
+          unit={chart.unit}
+          color={chart.color}
+        />
+      ))}
+    </SimpleGrid>
   );
 }
