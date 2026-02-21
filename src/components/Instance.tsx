@@ -270,9 +270,25 @@ export default function Instance() {
                         Memory
                       </Table.Td>
                       <Table.Td style={{ wordBreak: 'break-word' }}>
-                        {prettyBytes(mbToBytes(state.details.memory), {
-                          binary: true,
-                        })}
+                        {(() => {
+                          const memStats = state.runtimeInfo?.memoryStats;
+                          const allocated = prettyBytes(
+                            mbToBytes(state.details!.memory!),
+                            { binary: true }
+                          );
+                          if (
+                            memStats?.totalMemory &&
+                            memStats?.freeMemory &&
+                            memStats?.diskCaches
+                          ) {
+                            const used =
+                              Number(memStats.totalMemory) -
+                              Number(memStats.freeMemory) -
+                              Number(memStats.diskCaches);
+                            return `${prettyBytes(used, { binary: true })} / ${allocated}`;
+                          }
+                          return allocated;
+                        })()}
                       </Table.Td>
                     </Table.Tr>
                   )}
@@ -282,9 +298,17 @@ export default function Instance() {
                         Disk
                       </Table.Td>
                       <Table.Td style={{ wordBreak: 'break-word' }}>
-                        {prettyBytes(mbToBytes(state.details.disk), {
-                          binary: true,
-                        })}
+                        {(() => {
+                          const diskStats = state.runtimeInfo?.diskStats;
+                          const allocated = prettyBytes(
+                            mbToBytes(state.details!.disk!),
+                            { binary: true }
+                          );
+                          if (diskStats?.usedBytes) {
+                            return `${prettyBytes(Number(diskStats.usedBytes), { binary: true })} / ${allocated}`;
+                          }
+                          return allocated;
+                        })()}
                       </Table.Td>
                     </Table.Tr>
                   )}
