@@ -138,11 +138,11 @@ export default function Dashboard() {
           />
         </SimpleGrid>
 
-        {/* Main Dashboard Widgets */}
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
-          <CreateVMWidget />
-          <ResourcePieCharts vms={vms} />
-        </SimpleGrid>
+        {/* Resource Overview */}
+        <ResourcePieCharts vms={vms} />
+
+        {/* Create VM */}
+        <CreateVMWidget />
       </Stack>
     </Container>
   );
