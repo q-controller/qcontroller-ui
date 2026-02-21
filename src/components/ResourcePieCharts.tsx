@@ -18,7 +18,6 @@ import {
   IconChevronRight,
 } from '@tabler/icons-react';
 import type { Stats } from '@/common/stats';
-import { mbToGB } from '@/common/unit-conversion';
 import prettyBytes from 'pretty-bytes';
 
 interface VMData {
@@ -167,10 +166,17 @@ export default function ResourcePieCharts({ vms }: { vms: Stats }) {
       color,
       used: usedBytes,
     });
+    const allocatedDiskBytes = (vm.details?.disk || 0) * 1024 * 1024;
+    const diskStats = vm.runtimeInfo?.diskStats;
+    const usedDiskBytes = diskStats?.usedBytes
+      ? Number(diskStats.usedBytes)
+      : 0;
+
     diskData.push({
       label: name,
-      value: mbToGB(vm.details?.disk || 0),
+      value: allocatedDiskBytes,
       color,
+      used: usedDiskBytes,
     });
     cpusData.push({
       label: name,
