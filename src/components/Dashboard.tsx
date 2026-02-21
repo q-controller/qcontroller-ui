@@ -1,10 +1,20 @@
-import React, { useContext, useEffect, useReducer } from 'react';
-import { SimpleGrid, Stack, Title, Container, Text } from '@mantine/core';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
+import {
+  SimpleGrid,
+  Stack,
+  Title,
+  Container,
+  Text,
+  Button,
+  Modal,
+  Group,
+} from '@mantine/core';
 import {
   IconServer,
   IconCpu,
   IconDatabase,
   IconStack,
+  IconPlus,
 } from '@tabler/icons-react';
 const CreateVMWidget = React.lazy(() => import('@/components/CreateVM'));
 import ResourcePieCharts from '@/components/ResourcePieCharts';
@@ -54,6 +64,7 @@ function vmsReducer(state: Stats, action: UpdateAction | RemoveAction) {
 
 export default function Dashboard() {
   const [vms, dispatch] = useReducer(vmsReducer, {});
+  const [createOpen, setCreateOpen] = useState(false);
   const updates = useContext(UpdatesContext);
 
   useEffect(() => {
@@ -101,14 +112,32 @@ export default function Dashboard() {
   return (
     <Container size="xl" py="xl" px="md">
       <Stack gap="xl">
-        <div>
-          <Title order={1} mb="xs">
-            Dashboard
-          </Title>
-          <Text c="dimmed" size="lg">
-            Monitor your virtual machines and create new instances
-          </Text>
-        </div>
+        <Group justify="space-between" align="flex-start">
+          <div>
+            <Title order={1} mb="xs">
+              Dashboard
+            </Title>
+            <Text c="dimmed" size="lg">
+              Monitor your virtual machines
+            </Text>
+          </div>
+          <Button
+            leftSection={<IconPlus size={18} />}
+            size="md"
+            onClick={() => setCreateOpen(true)}
+          >
+            Create VM
+          </Button>
+        </Group>
+
+        <Modal
+          opened={createOpen}
+          onClose={() => setCreateOpen(false)}
+          title="Create VM"
+          size="lg"
+        >
+          <CreateVMWidget />
+        </Modal>
 
         {/* Quick Stats */}
         <SimpleGrid cols={{ base: 1, xs: 2, sm: 2, md: 4 }} spacing="md">
@@ -140,9 +169,6 @@ export default function Dashboard() {
 
         {/* Resource Overview */}
         <ResourcePieCharts vms={vms} />
-
-        {/* Create VM */}
-        <CreateVMWidget />
       </Stack>
     </Container>
   );
