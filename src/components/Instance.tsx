@@ -6,18 +6,25 @@ import {
   Card,
   Title,
   Badge,
-  Table,
   Group,
   Stack,
   Text,
   ActionIcon,
   Tooltip,
+  SimpleGrid,
+  Paper,
+  ThemeIcon,
+  RingProgress,
 } from '@mantine/core';
 import {
   IconRefresh,
   IconPlayerPlay,
   IconPlayerStop,
   IconTrash,
+  IconCpu,
+  IconDeviceDesktop,
+  IconDatabase,
+  IconNetwork,
 } from '@tabler/icons-react';
 import { UpdatesContext } from '@/common/updates-context';
 import { controllerClient } from '@/common/controller-client';
@@ -60,11 +67,7 @@ const getStatusBadge = (status: string) => {
 function instanceReducer(state: ServicesV1Info, action: UpdateAction) {
   switch (action.type) {
     case VMEvent_EventType.EVENT_TYPE_UPDATED: {
-      // Merge only defined properties from payload into state
-      const filteredPayload = Object.fromEntries(
-        Object.entries(action.payload).filter(([, v]) => v !== undefined)
-      );
-      return { ...state, ...filteredPayload };
+      return { ...state, ...action.payload };
     }
     default:
       return state;
@@ -224,140 +227,213 @@ export default function Instance() {
         </Group>
       </Group>
 
-      <Stack gap="md">
+      <Stack gap="lg">
         <Group>
           <Text fw={500}>Status:</Text>
           {getStatusBadge(state.state ?? 'Unknown')}
         </Group>
 
-        {state.runtimeInfo?.ipaddresses &&
-          state.runtimeInfo.ipaddresses.length > 0 && (
-            <Group wrap="wrap" gap="sm">
-              <Text fw={500} style={{ flexShrink: 0 }}>
-                IP Addresses:
-              </Text>
-              <Group gap="xs" style={{ flex: 1 }}>
-                {state.runtimeInfo.ipaddresses.map(
-                  (ip: string, index: number) => (
-                    <Badge key={index} variant="light" color="blue">
-                      {ip}
-                    </Badge>
-                  )
-                )}
-              </Group>
-            </Group>
-          )}
-
         {state.details && (
-          <div>
-            <Text fw={500} mb="sm">
-              Configuration:
-            </Text>
-            <Card withBorder radius="sm" p="sm">
-              <Table style={{ tableLayout: 'fixed', width: '100%' }}>
-                <Table.Tbody>
-                  {state.details.cpus && (
-                    <Table.Tr>
-                      <Table.Td fw={500} w="40%">
-                        CPUs
-                      </Table.Td>
-                      <Table.Td>{state.details.cpus}</Table.Td>
-                    </Table.Tr>
-                  )}
-                  {state.details.memory && (
-                    <Table.Tr>
-                      <Table.Td fw={500} w="40%">
-                        Memory
-                      </Table.Td>
-                      <Table.Td style={{ wordBreak: 'break-word' }}>
-                        {(() => {
-                          const memStats = state.runtimeInfo?.memoryStats;
-                          const allocated = prettyBytes(
-                            mbToBytes(state.details!.memory!),
-                            { binary: true }
-                          );
-                          if (
-                            memStats?.totalMemory &&
-                            memStats?.freeMemory &&
-                            memStats?.diskCaches
-                          ) {
-                            const used =
-                              Number(memStats.totalMemory) -
-                              Number(memStats.freeMemory) -
-                              Number(memStats.diskCaches);
-                            return `${prettyBytes(used, { binary: true })} / ${allocated}`;
+          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+            {state.details.cpus && (
+              <Paper shadow="xs" p="md" radius="md" withBorder>
+                <Group justify="space-between" align="flex-start" mb="sm">
+                  <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+                    CPUs
+                  </Text>
+                  <ThemeIcon color="orange" size={32} radius="md">
+                    <IconCpu size={18} />
+                  </ThemeIcon>
+                </Group>
+                <Text fw={700} size="xl">
+                  {state.details.cpus} cores
+                </Text>
+              </Paper>
+            )}
+            {state.details.memory &&
+              (() => {
+                const memStats = state.runtimeInfo?.memoryStats;
+                const allocatedBytes = mbToBytes(state.details!.memory!);
+                const allocated = prettyBytes(allocatedBytes, { binary: true });
+                const hasUsage = !!(
+                  memStats?.totalMemory &&
+                  memStats?.freeMemory &&
+                  memStats?.diskCaches
+                );
+                const used = hasUsage
+                  ? Number(memStats!.totalMemory) -
+                    Number(memStats!.freeMemory) -
+                    Number(memStats!.diskCaches)
+                  : 0;
+                const usedPct = hasUsage
+                  ? Math.round(Math.min((used / allocatedBytes) * 100, 100))
+                  : 0;
+
+                return (
+                  <Paper shadow="xs" p="md" radius="md" withBorder>
+                    <Group justify="space-between" align="center" wrap="nowrap">
+                      <Stack gap={4}>
+                        <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+                          Memory
+                        </Text>
+                        <Text fw={700} size="xl">
+                          {hasUsage
+                            ? prettyBytes(used, { binary: true })
+                            : allocated}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {hasUsage ? `of ${allocated}` : 'allocated'}
+                        </Text>
+                      </Stack>
+                      {hasUsage ? (
+                        <RingProgress
+                          size={80}
+                          thickness={8}
+                          roundCaps
+                          sections={[{ value: usedPct, color: 'blue' }]}
+                          label={
+                            <Text ta="center" size="xs" fw={700}>
+                              {usedPct}%
+                            </Text>
                           }
-                          return allocated;
-                        })()}
-                      </Table.Td>
-                    </Table.Tr>
-                  )}
-                  {state.details.disk && (
-                    <Table.Tr>
-                      <Table.Td fw={500} w="40%">
-                        Disk
-                      </Table.Td>
-                      <Table.Td style={{ wordBreak: 'break-word' }}>
-                        {(() => {
-                          const diskStats = state.runtimeInfo?.diskStats;
-                          const allocated = prettyBytes(
-                            mbToBytes(state.details!.disk!),
-                            { binary: true }
-                          );
-                          if (diskStats?.usedBytes) {
-                            return `${prettyBytes(Number(diskStats.usedBytes), { binary: true })} / ${allocated}`;
+                        />
+                      ) : (
+                        <ThemeIcon
+                          color="blue"
+                          size={40}
+                          radius="xl"
+                          variant="light"
+                        >
+                          <IconDeviceDesktop size={20} />
+                        </ThemeIcon>
+                      )}
+                    </Group>
+                  </Paper>
+                );
+              })()}
+            {state.details.disk &&
+              (() => {
+                const diskStats = state.runtimeInfo?.diskStats;
+                const allocatedBytes = mbToBytes(state.details!.disk!);
+                const allocated = prettyBytes(allocatedBytes, { binary: true });
+                const hasUsage = !!diskStats?.usedBytes;
+                const used = hasUsage ? Number(diskStats!.usedBytes) : 0;
+                const usedPct = hasUsage
+                  ? Math.round(Math.min((used / allocatedBytes) * 100, 100))
+                  : 0;
+
+                return (
+                  <Paper shadow="xs" p="md" radius="md" withBorder>
+                    <Group justify="space-between" align="center" wrap="nowrap">
+                      <Stack gap={4}>
+                        <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+                          Disk
+                        </Text>
+                        <Text fw={700} size="xl">
+                          {hasUsage
+                            ? prettyBytes(used, { binary: true })
+                            : allocated}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {hasUsage ? `of ${allocated}` : 'allocated'}
+                        </Text>
+                      </Stack>
+                      {hasUsage ? (
+                        <RingProgress
+                          size={80}
+                          thickness={8}
+                          roundCaps
+                          sections={[{ value: usedPct, color: 'green' }]}
+                          label={
+                            <Text ta="center" size="xs" fw={700}>
+                              {usedPct}%
+                            </Text>
                           }
-                          return allocated;
-                        })()}
-                      </Table.Td>
-                    </Table.Tr>
-                  )}
-                  {state.hwaddr && (
-                    <Table.Tr>
-                      <Table.Td fw={500} w="40%">
-                        MAC Address
-                      </Table.Td>
-                      <Table.Td style={{ wordBreak: 'break-word' }}>
-                        <Group gap="xs">
-                          <Badge
-                            color="blue"
-                            variant="light"
-                            radius="sm"
-                            style={{ fontFamily: 'monospace' }}
-                          >
-                            {state.hwaddr}
+                        />
+                      ) : (
+                        <ThemeIcon
+                          color="green"
+                          size={40}
+                          radius="xl"
+                          variant="light"
+                        >
+                          <IconDatabase size={20} />
+                        </ThemeIcon>
+                      )}
+                    </Group>
+                  </Paper>
+                );
+              })()}
+          </SimpleGrid>
+        )}
+
+        {(state.runtimeInfo?.ipaddresses?.length || state.hwaddr) && (
+          <Card withBorder radius="sm" p="md">
+            <Group mb="sm">
+              <ThemeIcon color="cyan" size={28} radius="md" variant="light">
+                <IconNetwork size={16} />
+              </ThemeIcon>
+              <Text fw={500}>Network</Text>
+            </Group>
+            <Stack gap="xs">
+              {state.runtimeInfo?.ipaddresses &&
+                state.runtimeInfo.ipaddresses.length > 0 && (
+                  <Group wrap="wrap" gap="sm">
+                    <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
+                      IP Addresses:
+                    </Text>
+                    <Group gap="xs" style={{ flex: 1 }}>
+                      {state.runtimeInfo.ipaddresses.map(
+                        (ip: string, index: number) => (
+                          <Badge key={index} variant="light" color="blue">
+                            {ip}
                           </Badge>
-                        </Group>
-                      </Table.Td>
-                    </Table.Tr>
-                  )}
-                  {state.cloudInit && (
-                    <Table.Tr>
-                      <Table.Td w="40%">Cloud-init</Table.Td>
-                      <Table.Td style={{ minWidth: 0 }}>
-                        <Stack gap="xs" style={{ width: '100%' }}>
-                          <YamlEditor
-                            label="User-data"
-                            value={state?.cloudInit?.userdata || ''}
-                            editable={false}
-                            onChange={() => {}}
-                            style={{ minWidth: 0, width: '100%' }}
-                          />
-                          <YamlEditor
-                            label="Network config"
-                            value={state?.cloudInit?.networkConfig || ''}
-                            editable={false}
-                            onChange={() => {}}
-                            style={{ minWidth: 0, width: '100%' }}
-                          />
-                        </Stack>
-                      </Table.Td>
-                    </Table.Tr>
-                  )}
-                </Table.Tbody>
-              </Table>
-            </Card>
-          </div>
+                        )
+                      )}
+                    </Group>
+                  </Group>
+                )}
+              {state.hwaddr && (
+                <Group wrap="wrap" gap="sm">
+                  <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
+                    MAC Address:
+                  </Text>
+                  <Badge
+                    color="blue"
+                    variant="light"
+                    radius="sm"
+                    style={{ fontFamily: 'monospace' }}
+                  >
+                    {state.hwaddr}
+                  </Badge>
+                </Group>
+              )}
+            </Stack>
+          </Card>
+        )}
+
+        {state.cloudInit && (
+          <Card withBorder radius="sm" p="md">
+            <Text fw={500} mb="sm">
+              Cloud-init
+            </Text>
+            <Stack gap="xs">
+              <YamlEditor
+                label="User-data"
+                value={state?.cloudInit?.userdata || ''}
+                editable={false}
+                onChange={() => {}}
+                style={{ minWidth: 0, width: '100%' }}
+              />
+              <YamlEditor
+                label="Network config"
+                value={state?.cloudInit?.networkConfig || ''}
+                editable={false}
+                onChange={() => {}}
+                style={{ minWidth: 0, width: '100%' }}
+              />
+            </Stack>
+          </Card>
         )}
       </Stack>
     </Card>
