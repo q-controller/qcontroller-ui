@@ -4,6 +4,7 @@ const Dashboard = React.lazy(() => import('@/components/Dashboard'));
 const App = React.lazy(() => import('@/components/App'));
 const Instance = React.lazy(() => import('@/components/Instance'));
 const Images = React.lazy(() => import('@/components/Images'));
+const Nodes = React.lazy(() => import('@/components/Nodes'));
 
 /**
  * Defines the routing structure for the QController UI application with the following routes:
@@ -37,6 +38,10 @@ export const router = createBrowserRouter(
         {
           path: 'instances/:instanceName',
           element: <Instance />,
+        },
+        {
+          path: 'nodes',
+          element: <Nodes />,
         },
       ],
     },

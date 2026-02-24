@@ -231,6 +231,11 @@ export default function Instance() {
         <Group>
           <Text fw={500}>Status:</Text>
           {getStatusBadge(state.state ?? 'Unknown')}
+          {state.node && (
+            <Badge color="cyan" variant="light">
+              {state.node}
+            </Badge>
+          )}
         </Group>
 
         {state.details && (

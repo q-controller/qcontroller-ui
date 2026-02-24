@@ -37,6 +37,9 @@ const defaultForm: ServicesV1CreateRequest = {
 };
 
 export default function CreateVMWidget() {
+  const [nodeOptions, setNodeOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [imageOptions, setImageOptions] = useState<
     { value: string; label: string }[]
   >([]);
@@ -93,6 +96,31 @@ export default function CreateVMWidget() {
               notifications.show({
                 title: 'Error',
                 message: 'Failed to fetch images',
+                color: 'red',
+              });
+            }
+          }
+        }}
+      />
+      <Select
+        label="Node"
+        placeholder="Auto (scheduler picks)"
+        data={nodeOptions}
+        value={form.node || null}
+        onChange={(val) => setForm((f) => ({ ...f, node: val || '' }))}
+        disabled={loading}
+        clearable
+        onFocus={async () => {
+          if (nodeOptions.length === 0) {
+            try {
+              const nodes = await controllerClient.listNodes();
+              setNodeOptions(
+                nodes.map((n) => ({ value: n.name || '', label: n.name || '' }))
+              );
+            } catch {
+              notifications.show({
+                title: 'Error',
+                message: 'Failed to fetch nodes',
                 color: 'red',
               });
             }
