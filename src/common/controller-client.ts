@@ -3,6 +3,7 @@ import {
   ControllerServiceApi,
   type ServicesV1CreateRequest,
   type ServicesV1Info,
+  type SettingsV1Node,
 } from '@/generated/controller-client/src';
 
 const controllerApi = new ControllerServiceApi(
@@ -63,8 +64,14 @@ export const controllerClient = {
       servicesV1CreateRequest: req,
     });
   },
+
+  async listNodes(): Promise<Array<SettingsV1Node>> {
+    const response = await controllerApi.controllerServiceListNodes();
+    return response.nodes || [];
+  },
 };
 
 export type { SettingsV1VM } from '@/generated/controller-client/src';
 export type { ServicesV1Info } from '@/generated/controller-client/src';
 export type { ServicesV1CreateRequest } from '@/generated/controller-client/src/models/ServicesV1CreateRequest';
+export type { SettingsV1Node } from '@/generated/controller-client/src';
