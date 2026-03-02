@@ -181,7 +181,7 @@ export default function Instance() {
               color="green"
               size="lg"
               onClick={handleStart}
-              disabled={stateFromJSON(state.state) === State.STATE_RUNNING}
+              disabled={stateFromJSON(state.state) !== State.STATE_STOPPED}
             >
               <IconPlayerPlay size={18} />
             </ActionIcon>
