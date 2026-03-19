@@ -9,16 +9,30 @@ import {
   Group,
   ThemeIcon,
   Badge,
+  Loader,
+  Center,
 } from '@mantine/core';
 import { IconServer, IconNetwork } from '@tabler/icons-react';
 import { controllerClient } from '@/common/controller-client';
 import type { SettingsV1Node } from '@/common/controller-client';
+import { notifications } from '@mantine/notifications';
 
 export default function Nodes() {
   const [nodes, setNodes] = useState<SettingsV1Node[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    controllerClient.listNodes().then(setNodes);
+    controllerClient
+      .listNodes()
+      .then(setNodes)
+      .catch(() => {
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to fetch nodes',
+          color: 'red',
+        });
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -32,6 +46,12 @@ export default function Nodes() {
             QEMU backend nodes
           </Text>
         </div>
+
+        {loading && (
+          <Center py="xl">
+            <Loader size="lg" />
+          </Center>
+        )}
 
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
           {nodes.map((node) => (
