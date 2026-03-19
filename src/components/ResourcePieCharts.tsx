@@ -28,12 +28,14 @@ function ResourceCard({
   data,
   unit,
   color,
+  onItemClick,
 }: {
   title: string;
   icon: React.ReactNode;
   data: VMData[];
   unit: string;
   color: string;
+  onItemClick?: (name: string) => void;
 }) {
   const totalAllocated = data.reduce((sum, item) => sum + item.value, 0);
   const totalUsed = data.reduce((sum, item) => sum + (item.used || 0), 0);
@@ -97,7 +99,11 @@ function ResourceCard({
             totalAllocated > 0 ? (item.value / totalAllocated) * 100 : 0;
 
           return (
-            <div key={item.label}>
+            <div
+              key={item.label}
+              onClick={onItemClick ? () => onItemClick(item.label) : undefined}
+              style={onItemClick ? { cursor: 'pointer' } : undefined}
+            >
               <Group justify="space-between" mb={4} wrap="wrap" gap="xs">
                 <Group gap="xs" style={{ flex: '1', minWidth: '0' }}>
                   <Badge size="xs" color={item.color} variant="filled" />
@@ -136,7 +142,13 @@ function getRandomColor() {
   return color;
 }
 
-export default function ResourcePieCharts({ vms }: { vms: Stats }) {
+export default function ResourcePieCharts({
+  vms,
+  onInstanceClick,
+}: {
+  vms: Stats;
+  onInstanceClick?: (name: string) => void;
+}) {
   const [colors, setColors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -245,6 +257,7 @@ export default function ResourcePieCharts({ vms }: { vms: Stats }) {
           data={chart.data}
           unit={chart.unit}
           color={chart.color}
+          onItemClick={onInstanceClick}
         />
       ))}
     </SimpleGrid>
