@@ -5,32 +5,16 @@ import {
   IconPhoto,
   IconServer,
 } from '@tabler/icons-react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router';
+import { Outlet, Link, useLocation } from 'react-router';
 import {
   DASHBOARD_PATH,
   IMAGES_PATH,
-  INSTANCES_PATH,
   NODES_PATH,
 } from '@/common/paths';
-import { useContext, useEffect } from 'react';
-import { UpdatesContext } from '@/common/updates-context';
-import { VMEvent_EventType } from '@/common/updates';
 
 export default function App() {
   const [opened, { toggle }] = useDisclosure(false);
   const location = useLocation();
-  const navigate = useNavigate();
-  const updates = useContext(UpdatesContext);
-
-  useEffect(() => {
-    if (
-      updates?.vmEvent?.type === VMEvent_EventType.EVENT_TYPE_REMOVED &&
-      updates.vmEvent.info?.name &&
-      location.pathname === `${INSTANCES_PATH}/${updates.vmEvent.info.name}`
-    ) {
-      navigate(DASHBOARD_PATH, { replace: true });
-    }
-  }, [updates, location.pathname, navigate]);
 
   return (
     <AppShell

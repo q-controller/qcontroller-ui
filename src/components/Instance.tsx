@@ -1,7 +1,6 @@
 import React from 'react';
 const YamlEditor = React.lazy(() => import('@/components/YamlEditor'));
-import { useCallback, useContext, useEffect, useReducer } from 'react';
-import { useParams } from 'react-router';
+import { useContext, useEffect, useReducer } from 'react';
 import {
   Card,
   Title,
@@ -17,7 +16,6 @@ import {
   RingProgress,
 } from '@mantine/core';
 import {
-  IconRefresh,
   IconPlayerPlay,
   IconPlayerStop,
   IconTrash,
@@ -74,16 +72,21 @@ function instanceReducer(state: ServicesV1Info, action: UpdateAction) {
   }
 }
 
-export default function Instance() {
-  const { instanceName } = useParams();
+export default function Instance({
+  instanceName,
+  initialData,
+}: {
+  instanceName: string;
+  initialData?: Partial<ServicesV1Info>;
+}) {
   const updates = useContext(UpdatesContext);
   const [state, dispatch] = useReducer(instanceReducer, {
     name: instanceName,
+    ...initialData,
   } as ServicesV1Info);
 
   const handleStart = async () => {
     try {
-      if (!instanceName) return;
       await controllerClient.start(instanceName);
       notifications.show({
         title: 'Success',
@@ -101,7 +104,6 @@ export default function Instance() {
 
   const handleStop = async (force: boolean = false) => {
     try {
-      if (!instanceName) return;
       await controllerClient.stop(instanceName, force);
     } catch {
       notifications.show({
@@ -114,7 +116,6 @@ export default function Instance() {
 
   const handleDelete = async () => {
     try {
-      if (!instanceName) return;
       await controllerClient.delete(instanceName);
     } catch {
       notifications.show({
@@ -124,28 +125,6 @@ export default function Instance() {
       });
     }
   };
-
-  const handleRefresh = useCallback(async () => {
-    try {
-      if (!instanceName) return;
-      const info = await controllerClient.get(instanceName);
-      dispatch({
-        type: VMEvent_EventType.EVENT_TYPE_UPDATED,
-        payload: info || ({ name: instanceName } as ServicesV1Info),
-      });
-    } catch {
-      notifications.show({
-        title: 'Error',
-        message: `Failed to fetch instance ${instanceName} details`,
-        color: 'red',
-      });
-    }
-  }, [instanceName]);
-
-  useEffect(() => {
-    if (!instanceName) return;
-    handleRefresh();
-  }, [instanceName, handleRefresh]);
 
   useEffect(() => {
     if (updates?.vmEvent?.info?.name === instanceName) {
@@ -160,10 +139,6 @@ export default function Instance() {
       });
     }
   }, [updates, instanceName]);
-
-  if (!instanceName) {
-    return <></>;
-  }
 
   return (
     <Card withBorder shadow="sm" radius="md" p="lg">
@@ -217,11 +192,6 @@ export default function Instance() {
               disabled={stateFromJSON(state.state) !== State.STATE_STOPPED}
             >
               <IconTrash size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Refresh instance data">
-            <ActionIcon variant="light" size="lg" onClick={handleRefresh}>
-              <IconRefresh size={18} />
             </ActionIcon>
           </Tooltip>
         </Group>

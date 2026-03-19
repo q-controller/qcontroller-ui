@@ -1,5 +1,4 @@
 import React, { useContext, useEffect, useReducer, useState } from 'react';
-import { useNavigate } from 'react-router';
 import {
   SimpleGrid,
   Stack,
@@ -18,6 +17,7 @@ import {
   IconPlus,
 } from '@tabler/icons-react';
 const CreateVMWidget = React.lazy(() => import('@/components/CreateVM'));
+const InstanceWidget = React.lazy(() => import('@/components/Instance'));
 import ResourcePieCharts from '@/components/ResourcePieCharts';
 import StatCard from './StatCard';
 import type { ServicesV1Info } from '@/common/controller-client';
@@ -66,8 +66,8 @@ function vmsReducer(state: Stats, action: UpdateAction | RemoveAction) {
 export default function Dashboard() {
   const [vms, dispatch] = useReducer(vmsReducer, {});
   const [createOpen, setCreateOpen] = useState(false);
+  const [selectedInstance, setSelectedInstance] = useState<string | null>(null);
   const updates = useContext(UpdatesContext);
-  const navigate = useNavigate();
 
   useEffect(() => {
     controllerClient.list().then((data) => {
@@ -138,6 +138,20 @@ export default function Dashboard() {
           <CreateVMWidget />
         </Modal>
 
+        <Modal
+          opened={selectedInstance !== null && selectedInstance in vms}
+          onClose={() => setSelectedInstance(null)}
+          size="xl"
+          fullScreen
+        >
+          {selectedInstance && (
+            <InstanceWidget
+              instanceName={selectedInstance}
+              initialData={vms[selectedInstance]}
+            />
+          )}
+        </Modal>
+
         {/* Quick Stats */}
         <SimpleGrid cols={{ base: 1, xs: 2, sm: 2, md: 4 }} spacing="md">
           <StatCard
@@ -169,7 +183,7 @@ export default function Dashboard() {
         {/* Resource Overview */}
         <ResourcePieCharts
           vms={vms}
-          onInstanceClick={(name) => navigate(`/instances/${name}`)}
+          onInstanceClick={(name) => setSelectedInstance(name)}
         />
       </Stack>
     </Container>
