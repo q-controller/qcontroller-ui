@@ -84,14 +84,11 @@ export default function Dashboard() {
     if (updates?.vmEvent) {
       switch (updates.vmEvent.type) {
         case VMEvent_EventType.EVENT_TYPE_UPDATED:
-          if (updates.vmEvent.info?.name) {
-            controllerClient.get(updates.vmEvent.info.name).then((data) => {
-              if (data) {
-                dispatch({
-                  type: VMEvent_EventType.EVENT_TYPE_UPDATED,
-                  payload: data,
-                });
-              }
+          if (updates.vmEvent.info) {
+            dispatch({
+              type: VMEvent_EventType.EVENT_TYPE_UPDATED,
+              payload: updates.vmEvent
+                .info as unknown as Partial<ServicesV1Info>,
             });
           }
           break;
