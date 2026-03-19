@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useReducer, useState } from 'react';
+import { useNavigate } from 'react-router';
 import {
   SimpleGrid,
   Stack,
@@ -66,6 +67,7 @@ export default function Dashboard() {
   const [vms, dispatch] = useReducer(vmsReducer, {});
   const [createOpen, setCreateOpen] = useState(false);
   const updates = useContext(UpdatesContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     controllerClient.list().then((data) => {
@@ -165,7 +167,10 @@ export default function Dashboard() {
         </SimpleGrid>
 
         {/* Resource Overview */}
-        <ResourcePieCharts vms={vms} />
+        <ResourcePieCharts
+          vms={vms}
+          onInstanceClick={(name) => navigate(`/instances/${name}`)}
+        />
       </Stack>
     </Container>
   );
