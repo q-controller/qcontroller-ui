@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Container,
   SimpleGrid,
-  Stack,
   Title,
   Text,
   Paper,
@@ -35,45 +33,41 @@ export default function Nodes() {
       .finally(() => setLoading(false));
   }, []);
 
+  if (loading) {
+    return (
+      <Center py="xl">
+        <Loader size="lg" />
+      </Center>
+    );
+  }
+
+  if (nodes.length === 0) {
+    return null;
+  }
+
   return (
-    <Container size="xl" py="xl" px="md">
-      <Stack gap="xl">
-        <div>
-          <Title order={1} mb="xs">
-            Nodes
-          </Title>
-          <Text c="dimmed" size="lg">
-            QEMU backend nodes
-          </Text>
-        </div>
-
-        {loading && (
-          <Center py="xl">
-            <Loader size="lg" />
-          </Center>
-        )}
-
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
-          {nodes.map((node) => (
-            <Paper key={node.name} shadow="xs" p="md" radius="md" withBorder>
-              <Group justify="space-between" align="flex-start" mb="sm">
-                <Text fw={700} size="lg">
-                  {node.name}
-                </Text>
-                <ThemeIcon color="cyan" size={32} radius="md">
-                  <IconServer size={18} />
-                </ThemeIcon>
-              </Group>
-              <Group gap="xs">
-                <IconNetwork size={14} color="gray" />
-                <Badge variant="light" color="gray" size="lg" radius="sm">
-                  {node.endpoint}
-                </Badge>
-              </Group>
-            </Paper>
-          ))}
-        </SimpleGrid>
-      </Stack>
-    </Container>
+    <>
+      <Title order={3}>Nodes</Title>
+      <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+        {nodes.map((node) => (
+          <Paper key={node.name} shadow="xs" p="md" radius="md" withBorder>
+            <Group justify="space-between" align="flex-start" mb="sm">
+              <Text fw={700} size="lg">
+                {node.name}
+              </Text>
+              <ThemeIcon color="cyan" size={32} radius="md">
+                <IconServer size={18} />
+              </ThemeIcon>
+            </Group>
+            <Group gap="xs">
+              <IconNetwork size={14} color="gray" />
+              <Badge variant="light" color="gray" size="lg" radius="sm">
+                {node.endpoint}
+              </Badge>
+            </Group>
+          </Paper>
+        ))}
+      </SimpleGrid>
+    </>
   );
 }

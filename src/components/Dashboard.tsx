@@ -20,6 +20,7 @@ const CreateVMWidget = React.lazy(() => import('@/components/CreateVM'));
 const InstanceWidget = React.lazy(() => import('@/components/Instance'));
 import ResourcePieCharts from '@/components/ResourcePieCharts';
 import StatCard from './StatCard';
+import Nodes from '@/components/Nodes';
 import type { ServicesV1Info } from '@/common/controller-client';
 import { VMEvent_EventType } from '@/common/updates';
 import { controllerClient } from '@/common/controller-client';
@@ -185,6 +186,9 @@ export default function Dashboard() {
           vms={vms}
           onInstanceClick={(name) => setSelectedInstance(name)}
         />
+
+        {/* Nodes */}
+        <Nodes />
       </Stack>
     </Container>
   );
