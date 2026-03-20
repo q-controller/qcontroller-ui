@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Card,
   Title,
@@ -6,12 +6,16 @@ import {
   Group,
   Progress,
   Text,
-  Badge,
   RingProgress,
   SimpleGrid,
   ThemeIcon,
 } from '@mantine/core';
-import { IconCpu, IconDatabase, IconDeviceDesktop } from '@tabler/icons-react';
+import {
+  IconCircleFilled,
+  IconCpu,
+  IconDatabase,
+  IconDeviceDesktop,
+} from '@tabler/icons-react';
 import type { Stats } from '@/common/stats';
 import prettyBytes from 'pretty-bytes';
 
@@ -106,7 +110,10 @@ function ResourceCard({
             >
               <Group justify="space-between" mb={4} wrap="wrap" gap="xs">
                 <Group gap="xs" style={{ flex: '1', minWidth: '0' }}>
-                  <Badge size="xs" color={item.color} variant="filled" />
+                  <IconCircleFilled
+                    size={12}
+                    style={{ color: item.color, flexShrink: 0 }}
+                  />
                   <Text size="sm" style={{ wordBreak: 'break-word' }}>
                     {item.label}
                   </Text>
@@ -133,13 +140,22 @@ function ResourceCard({
   );
 }
 
-function getRandomColor() {
-  const letters = '0123456789ABCDEF';
-  let color = '#';
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * 16)];
+// Derives a stable color from a VM name by hashing it to a hue on the
+// HSL color wheel (0-360). The same name always produces the same color,
+// and with 360 possible hues collisions are unlikely for typical VM counts.
+// Uses extra bit-mixing (integer finalizer with constant 0x45d9f3b) so that
+// similar names (e.g. worker-node-1 vs worker-node-2) still produce
+// visually distinct colors. See https://nullprogram.com/blog/2018/07/31/
+function getColorForName(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
   }
-  return color;
+  hash = (((hash >>> 16) ^ hash) * 0x45d9f3b) | 0;
+  hash = (((hash >>> 16) ^ hash) * 0x45d9f3b) | 0;
+  hash = (hash >>> 16) ^ hash;
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 65%, 50%)`;
 }
 
 export default function ResourcePieCharts({
@@ -149,32 +165,13 @@ export default function ResourcePieCharts({
   vms: Stats;
   onInstanceClick?: (name: string) => void;
 }) {
-  const [colors, setColors] = useState<{ [key: string]: string }>({});
-
-  useEffect(() => {
-    setTimeout(() => {
-      const newColors = { ...colors };
-      for (const name of Object.keys(colors)) {
-        if (!vms[name]) {
-          delete newColors[name];
-        }
-      }
-      for (const name of Object.keys(vms)) {
-        if (!newColors[name]) {
-          newColors[name] = getRandomColor();
-        }
-      }
-      setColors(newColors);
-    }, 0);
-  }, [colors, vms]);
-
   const ramData: VMData[] = [];
   const diskData: VMData[] = [];
   const cpusData: VMData[] = [];
 
   for (const name of Object.keys(vms)) {
     const vm = vms[name];
-    const color = colors[name];
+    const color = getColorForName(name);
     const allocatedBytes = (vm.details?.memory || 0) * 1024 * 1024;
     const memStats = vm.runtimeInfo?.memoryStats;
     const usedBytes =
