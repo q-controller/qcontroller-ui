@@ -59,10 +59,15 @@ export const controllerClient = {
     });
   },
 
-  async create(req: ServicesV1CreateRequest): Promise<void> {
-    await controllerApi.controllerServiceCreate({
-      servicesV1CreateRequest: req,
-    });
+  async create(
+    req: ServicesV1CreateRequest,
+    signal?: AbortSignal
+  ): Promise<void> {
+    const overrides = signal ? { signal } : undefined;
+    await controllerApi.controllerServiceCreate(
+      { servicesV1CreateRequest: req },
+      overrides
+    );
   },
 
   async listNodes(): Promise<Array<SettingsV1Node>> {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { type RefObject, useContext, useEffect, useState } from 'react';
 import {
   TextInput,
   Button,
@@ -7,6 +7,8 @@ import {
   NumberInput,
   Checkbox,
   Select,
+  Progress,
+  Text,
 } from '@mantine/core';
 import type { ServicesV1CreateRequest } from '@/common/controller-client';
 const YamlEditor = React.lazy(() => import('@/components/YamlEditor'));
@@ -20,6 +22,7 @@ import {
   getUnitOptions,
   type MemoryUnit,
 } from '@/common/unit-conversion';
+import { UpdatesContext } from '@/common/updates-context';
 
 const defaultForm: ServicesV1CreateRequest = {
   name: '',
@@ -36,7 +39,13 @@ const defaultForm: ServicesV1CreateRequest = {
   },
 };
 
-export default function CreateVMWidget() {
+export default function CreateVMWidget({
+  abortRef,
+  onCancel,
+}: {
+  abortRef: RefObject<AbortController | null>;
+  onCancel?: () => void;
+}) {
   const [nodeOptions, setNodeOptions] = useState<
     { value: string; label: string }[]
   >([]);
@@ -44,16 +53,31 @@ export default function CreateVMWidget() {
     { value: string; label: string }[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const [progressPercent, setProgressPercent] = useState<number | null>(null);
+  const [progressMessage, setProgressMessage] = useState('');
   const [diskUnit, setDiskUnit] = useState<MemoryUnit>('G');
   const [memoryUnit, setMemoryUnit] = useState<MemoryUnit>('G');
   const [form, setForm] = useState<ServicesV1CreateRequest>(defaultForm);
+  const updates = useContext(UpdatesContext);
+
+  // Listen for progress events while creating.
+  useEffect(() => {
+    if (!loading || !updates?.progressEvent) return;
+    setProgressPercent(updates.progressEvent.percent);
+    setProgressMessage(updates.progressEvent.message);
+  }, [updates, loading]);
 
   const handleCreate = async () => {
+    const abort = new AbortController();
+    abortRef.current = abort;
     setLoading(true);
+    setProgressPercent(null);
+    setProgressMessage('');
     try {
-      await controllerClient.create(form);
+      await controllerClient.create(form, abort.signal);
       setForm(defaultForm);
     } catch {
+      if (abort.signal.aborted) return;
       notifications.show({
         title: 'Error',
         message: `Failed to create VM`,
@@ -61,7 +85,21 @@ export default function CreateVMWidget() {
       });
     } finally {
       setLoading(false);
+      setProgressPercent(null);
+      setProgressMessage('');
+      abortRef.current = null;
     }
+  };
+
+  const handleCancel = () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    setLoading(false);
+    setProgressPercent(null);
+    setProgressMessage('');
+    onCancel?.();
   };
 
   return (
@@ -231,7 +269,22 @@ export default function CreateVMWidget() {
           required
         />
       </Group>
+
+      {loading && progressPercent !== null && (
+        <Stack gap={4}>
+          <Text size="sm" c="dimmed">
+            {progressMessage} — {progressPercent}%
+          </Text>
+          <Progress value={progressPercent} size="sm" radius="xl" animated />
+        </Stack>
+      )}
+
       <Group justify="flex-end">
+        {loading && (
+          <Button variant="subtle" color="gray" onClick={handleCancel}>
+            Cancel
+          </Button>
+        )}
         <Button
           leftSection={<IconPlus size={18} />}
           onClick={handleCreate}
