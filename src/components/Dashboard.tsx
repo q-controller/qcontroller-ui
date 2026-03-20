@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useReducer, useState } from 'react';
+import React, {
+  useContext,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import {
   SimpleGrid,
   Stack,
@@ -67,6 +73,7 @@ function vmsReducer(state: Stats, action: UpdateAction | RemoveAction) {
 export default function Dashboard() {
   const [vms, dispatch] = useReducer(vmsReducer, {});
   const [createOpen, setCreateOpen] = useState(false);
+  const createAbortRef = useRef<AbortController | null>(null);
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null);
   const updates = useContext(UpdatesContext);
 
@@ -132,11 +139,20 @@ export default function Dashboard() {
 
         <Modal
           opened={createOpen}
-          onClose={() => setCreateOpen(false)}
+          onClose={() => {
+            if (createAbortRef.current) {
+              createAbortRef.current.abort();
+              createAbortRef.current = null;
+            }
+            setCreateOpen(false);
+          }}
           title="Create VM"
           size="lg"
         >
-          <CreateVMWidget />
+          <CreateVMWidget
+            abortRef={createAbortRef}
+            onCancel={() => setCreateOpen(false)}
+          />
         </Modal>
 
         <Modal
