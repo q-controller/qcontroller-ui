@@ -169,7 +169,7 @@ export default function ResourcePieCharts({
   const diskData: VMData[] = [];
   const cpusData: VMData[] = [];
 
-  for (const name of Object.keys(vms)) {
+  for (const name of Object.keys(vms).sort()) {
     const vm = vms[name];
     const color = getColorForName(name);
     const allocatedBytes = (vm.details?.memory || 0) * 1024 * 1024;
