@@ -3,6 +3,7 @@ import React from 'react';
 const Dashboard = React.lazy(() => import('@/components/Dashboard'));
 const App = React.lazy(() => import('@/components/App'));
 const Images = React.lazy(() => import('@/components/Images'));
+const NotFound = React.lazy(() => import('@/components/NotFound'));
 
 export const router = createBrowserRouter(
   [
@@ -21,6 +22,10 @@ export const router = createBrowserRouter(
         {
           path: 'images',
           element: <Images></Images>,
+        },
+        {
+          path: '*',
+          element: <NotFound />,
         },
       ],
     },
