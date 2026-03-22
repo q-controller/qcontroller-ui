@@ -172,8 +172,8 @@ export default function ResourcePieCharts({
   for (const name of Object.keys(vms).sort()) {
     const vm = vms[name];
     const color = getColorForName(name);
-    const allocatedBytes = (vm.details?.memory || 0) * 1024 * 1024;
-    const memStats = vm.runtimeInfo?.memoryStats;
+    const allocatedBytes = (vm.info?.spec?.vm?.memory || 0) * 1024 * 1024;
+    const memStats = vm.info?.status?.runtimeInfo?.memoryStats;
     const usedBytes =
       memStats?.totalMemory && memStats?.freeMemory && memStats?.diskCaches
         ? Number(memStats.totalMemory) -
@@ -187,8 +187,8 @@ export default function ResourcePieCharts({
       color,
       used: usedBytes,
     });
-    const allocatedDiskBytes = (vm.details?.disk || 0) * 1024 * 1024;
-    const diskStats = vm.runtimeInfo?.diskStats;
+    const allocatedDiskBytes = (vm.info?.spec?.vm?.disk || 0) * 1024 * 1024;
+    const diskStats = vm.info?.status?.runtimeInfo?.diskStats;
     const usedDiskBytes = diskStats?.usedBytes
       ? Number(diskStats.usedBytes)
       : 0;
@@ -201,7 +201,7 @@ export default function ResourcePieCharts({
     });
     cpusData.push({
       label: name,
-      value: vm.details?.cpus || 0,
+      value: vm.info?.spec?.vm?.cpus || 0,
       color,
     });
   }

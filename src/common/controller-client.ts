@@ -1,32 +1,33 @@
 import {
   Configuration,
-  ControllerServiceApi,
-  type ServicesV1CreateRequest,
-  type ServicesV1Info,
+  OrchestratorServiceApi,
+  type ServicesOrchestratorV1CreateRequest,
+  type ServicesOrchestratorV1Info,
   type SettingsV1Node,
 } from '@/generated/controller-client/src';
 
-const controllerApi = new ControllerServiceApi(
+const api = new OrchestratorServiceApi(
   new Configuration({
     basePath: '',
   })
 );
 
 export const controllerClient = {
-  async list(): Promise<Array<ServicesV1Info>> {
-    const response = await controllerApi.controllerServiceInfo({
+  async list(node: string): Promise<Array<ServicesOrchestratorV1Info>> {
+    const response = await api.orchestratorServiceInfo({
+      node,
       name: '',
     });
-    if (response.info) {
-      return response.info;
-    }
-
-    return [];
+    return response.info || [];
   },
 
-  async get(name: string): Promise<ServicesV1Info | null> {
-    const response = await controllerApi.controllerServiceInfo({
-      name: name,
+  async get(
+    node: string,
+    name: string
+  ): Promise<ServicesOrchestratorV1Info | null> {
+    const response = await api.orchestratorServiceInfo({
+      node,
+      name,
     });
     if (response.info && response.info.length > 0) {
       return response.info[0];
@@ -34,49 +35,56 @@ export const controllerClient = {
     return null;
   },
 
-  async start(name: string): Promise<void> {
-    await controllerApi.controllerServiceStart({
-      name: name,
-      servicesV1StartRequest: {
-        name: name,
+  async start(node: string, name: string): Promise<void> {
+    await api.orchestratorServiceStart({
+      node,
+      name,
+      servicesOrchestratorV1StartRequest: {},
+    });
+  },
+
+  async stop(
+    node: string,
+    name: string,
+    force: boolean = false
+  ): Promise<void> {
+    await api.orchestratorServiceStop({
+      node,
+      name,
+      servicesOrchestratorV1StopRequest: {
+        force,
       },
     });
   },
 
-  async stop(name: string, force: boolean = false): Promise<void> {
-    await controllerApi.controllerServiceStop({
-      name: name,
-      servicesV1StopRequest: {
-        name: name,
-        force: force,
-      },
-    });
-  },
-
-  async delete(name: string): Promise<void> {
-    await controllerApi.controllerServiceRemove({
-      name: name,
+  async delete(node: string, name: string): Promise<void> {
+    await api.orchestratorServiceRemove({
+      node,
+      name,
     });
   },
 
   async create(
-    req: ServicesV1CreateRequest,
+    req: ServicesOrchestratorV1CreateRequest,
     signal?: AbortSignal
   ): Promise<void> {
     const overrides = signal ? { signal } : undefined;
-    await controllerApi.controllerServiceCreate(
-      { servicesV1CreateRequest: req },
+    await api.orchestratorServiceCreate(
+      {
+        node: req.node || '',
+        servicesOrchestratorV1CreateRequest: req,
+      },
       overrides
     );
   },
 
   async listNodes(): Promise<Array<SettingsV1Node>> {
-    const response = await controllerApi.controllerServiceListNodes();
+    const response = await api.orchestratorServiceListNodes();
     return response.nodes || [];
   },
 };
 
 export type { SettingsV1VM } from '@/generated/controller-client/src';
-export type { ServicesV1Info } from '@/generated/controller-client/src';
-export type { ServicesV1CreateRequest } from '@/generated/controller-client/src/models/ServicesV1CreateRequest';
+export type { ServicesOrchestratorV1Info as ServicesV1Info } from '@/generated/controller-client/src';
+export type { ServicesOrchestratorV1CreateRequest as ServicesV1CreateRequest } from '@/generated/controller-client/src';
 export type { SettingsV1Node } from '@/generated/controller-client/src';

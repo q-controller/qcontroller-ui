@@ -1,4 +1,4 @@
 import { createContext } from 'react';
-import { Update } from '@/common/updates';
+import { Event } from '@/common/updates';
 
-export const UpdatesContext = createContext<Update | null>(null);
+export const UpdatesContext = createContext<Event | null>(null);

@@ -1,9 +1,9 @@
 export {
   SubscribeRequest,
-  SubscribeResponse,
   VMEvent_EventType,
-  Update,
-} from '@/generated/proto/services/v1/event';
+} from '@/generated/proto/services/event/v1/messages';
+
+export { Event } from '@/generated/proto/services/orchestrator/v1/messages';
 
 export {
   stateFromJSON,

@@ -48,16 +48,14 @@ interface RemoveAction {
 function vmsReducer(state: Stats, action: UpdateAction | RemoveAction) {
   switch (action.type) {
     case VMEvent_EventType.EVENT_TYPE_UPDATED: {
-      if (!action.payload.name) {
+      const node = action.payload.node;
+      const name = action.payload.info?.name;
+      if (!name || !action.payload.info?.spec?.vm) {
         return state;
       }
-
-      if (!action.payload.details) {
-        return state;
-      }
-
+      const key = node ? `${node}:${name}` : name;
       const newState = { ...state };
-      newState[action.payload.name] = action.payload;
+      newState[key] = action.payload;
       return newState;
     }
     case VMEvent_EventType.EVENT_TYPE_REMOVED: {
@@ -78,35 +76,51 @@ export default function Dashboard() {
   const updates = useContext(UpdatesContext);
 
   useEffect(() => {
-    controllerClient.list().then((data) => {
-      for (const vm of data) {
-        if (vm.details) {
-          dispatch({
-            type: VMEvent_EventType.EVENT_TYPE_UPDATED,
-            payload: vm,
-          });
+    controllerClient
+      .listNodes()
+      .then((nodes) => {
+        for (const node of nodes) {
+          controllerClient
+            .list(node.name || '')
+            .then((data) => {
+              for (const vm of data) {
+                if (vm.info?.spec?.vm) {
+                  dispatch({
+                    type: VMEvent_EventType.EVENT_TYPE_UPDATED,
+                    payload: vm,
+                  });
+                }
+              }
+            })
+            .catch(() => {});
         }
-      }
-    });
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (updates?.vmEvent) {
-      switch (updates.vmEvent.type) {
+    const vmEvent = updates?.update?.vmEvent;
+    if (vmEvent) {
+      switch (vmEvent.type) {
         case VMEvent_EventType.EVENT_TYPE_UPDATED:
-          if (updates.vmEvent.info) {
+          if (vmEvent.info) {
             dispatch({
               type: VMEvent_EventType.EVENT_TYPE_UPDATED,
-              payload: updates.vmEvent
-                .info as unknown as Partial<ServicesV1Info>,
+              payload: {
+                node: updates?.node,
+                info: vmEvent.info,
+              } as Partial<ServicesV1Info>,
             });
           }
           break;
         case VMEvent_EventType.EVENT_TYPE_REMOVED:
-          if (updates.vmEvent.info?.name) {
+          if (vmEvent.info?.name) {
+            const removeKey = updates?.node
+              ? `${updates.node}:${vmEvent.info.name}`
+              : vmEvent.info.name;
             dispatch({
               type: VMEvent_EventType.EVENT_TYPE_REMOVED,
-              payload: updates.vmEvent.info.name,
+              payload: removeKey,
             });
           }
           break;
@@ -179,19 +193,19 @@ export default function Dashboard() {
           />
           <StatCard
             title="Total CPUs"
-            value={`${Object.values(vms).reduce((sum, vm) => sum + (vm.details?.cpus || 0), 0)}`}
+            value={`${Object.values(vms).reduce((sum, vm) => sum + (vm.info?.spec?.vm?.cpus || 0), 0)}`}
             icon={<IconCpu size={20} />}
             color="green"
           />
           <StatCard
             title="Total Storage"
-            value={`${prettyBytes(mbToBytes(Object.values(vms).reduce((sum, vm) => sum + (vm.details?.disk || 0), 0)), { binary: true })}`}
+            value={`${prettyBytes(mbToBytes(Object.values(vms).reduce((sum, vm) => sum + (vm.info?.spec?.vm?.disk || 0), 0)), { binary: true })}`}
             icon={<IconDatabase size={20} />}
             color="orange"
           />
           <StatCard
             title="Total RAM"
-            value={`${prettyBytes(mbToBytes(Object.values(vms).reduce((sum, vm) => sum + (vm.details?.memory || 0), 0)), { binary: true })}`}
+            value={`${prettyBytes(mbToBytes(Object.values(vms).reduce((sum, vm) => sum + (vm.info?.spec?.vm?.memory || 0), 0)), { binary: true })}`}
             icon={<IconStack size={20} />}
             color="red"
           />
