@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SubscribeRequest, SubscribeResponse, Update } from '@/common/updates';
+import { SubscribeRequest, Event } from '@/common/updates';
 import { UpdatesContext } from '@/common/updates-context';
 
 export function UpdatesProvider({
@@ -9,7 +9,7 @@ export function UpdatesProvider({
   children: React.ReactNode;
   wsUrl: string;
 }) {
-  const [data, setData] = useState<Update | null>(null);
+  const [data, setData] = useState<Event | null>(null);
 
   useEffect(() => {
     const ws = new WebSocket(wsUrl);
@@ -22,8 +22,8 @@ export function UpdatesProvider({
     };
 
     ws.onmessage = (event) => {
-      const message = SubscribeResponse.decode(new Uint8Array(event.data));
-      setData(message.update || null);
+      const message = Event.decode(new Uint8Array(event.data));
+      setData(message);
     };
 
     ws.onerror = (error) => {

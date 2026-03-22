@@ -25,18 +25,21 @@ import {
 import { UpdatesContext } from '@/common/updates-context';
 
 const defaultForm: ServicesV1CreateRequest = {
+  node: '',
+  spec: {
+    image: '',
+    vm: {
+      cpus: 1,
+      disk: convertToMB(40, 'G'), // 40GB
+      memory: convertToMB(1, 'G'), // 1GB
+    },
+    cloudInit: {
+      networkConfig: '',
+      userdata: '',
+    },
+  },
   name: '',
-  image: '',
   start: true,
-  vm: {
-    cpus: 1,
-    disk: convertToMB(40, 'G'), // 40GB
-    memory: convertToMB(1, 'G'), // 1GB
-  },
-  cloudInit: {
-    networkConfig: '',
-    userdata: '',
-  },
 };
 
 export default function CreateVMWidget({
@@ -62,9 +65,10 @@ export default function CreateVMWidget({
 
   // Listen for progress events while creating.
   useEffect(() => {
-    if (!loading || !updates?.progressEvent) return;
-    setProgressPercent(updates.progressEvent.percent);
-    setProgressMessage(updates.progressEvent.message);
+    const progress = updates?.update?.progressEvent;
+    if (!loading || !progress) return;
+    setProgressPercent(progress.percent);
+    setProgressMessage(progress.message);
   }, [updates, loading]);
 
   const handleCreate = async () => {
@@ -109,7 +113,10 @@ export default function CreateVMWidget({
         placeholder="Enter VM name"
         value={form.name || ''}
         onChange={(e) =>
-          setForm((f) => ({ ...f, name: e.currentTarget?.value }))
+          setForm((f) => ({
+            ...f,
+            name: e.currentTarget?.value,
+          }))
         }
         disabled={loading}
         required
@@ -118,8 +125,10 @@ export default function CreateVMWidget({
         label="Image"
         placeholder="Select image"
         data={imageOptions}
-        value={form.image || null}
-        onChange={(val) => setForm((f) => ({ ...f, image: val || '' }))}
+        value={form.spec?.image || null}
+        onChange={(val) =>
+          setForm((f) => ({ ...f, spec: { ...f.spec, image: val || '' } }))
+        }
         disabled={loading}
         required
         searchable
@@ -175,22 +184,28 @@ export default function CreateVMWidget({
       />
       <Stack gap="xs">
         <YamlEditor
-          value={form?.cloudInit?.userdata || ''}
+          value={form.spec?.cloudInit?.userdata || ''}
           onChange={(val) =>
             setForm((f) => ({
               ...f,
-              cloudInit: { ...f.cloudInit, userdata: val },
+              spec: {
+                ...f.spec,
+                cloudInit: { ...f.spec?.cloudInit, userdata: val },
+              },
             }))
           }
           editable={!loading}
           label="Cloud-init user-data (YAML)"
         />
         <YamlEditor
-          value={form?.cloudInit?.networkConfig || ''}
+          value={form.spec?.cloudInit?.networkConfig || ''}
           onChange={(val) =>
             setForm((f) => ({
               ...f,
-              cloudInit: { ...f.cloudInit, networkConfig: val },
+              spec: {
+                ...f.spec,
+                cloudInit: { ...f.spec?.cloudInit, networkConfig: val },
+              },
             }))
           }
           editable={!loading}
@@ -200,11 +215,14 @@ export default function CreateVMWidget({
       <NumberInput
         label="CPUs"
         placeholder="Number of CPUs"
-        value={form.vm?.cpus ?? ''}
+        value={form.spec?.vm?.cpus ?? ''}
         onChange={(val) =>
           setForm((f) => ({
             ...f,
-            vm: { ...f.vm, cpus: parseInt(String(val)) },
+            spec: {
+              ...f.spec,
+              vm: { ...f.spec?.vm, cpus: parseInt(String(val)) },
+            },
           }))
         }
         min={1}
@@ -214,11 +232,17 @@ export default function CreateVMWidget({
         <NumberInput
           label="Disk size"
           placeholder="e.g. 40"
-          value={convertFromMB(form.vm?.disk || 0, diskUnit)}
+          value={convertFromMB(form.spec?.vm?.disk || 0, diskUnit)}
           onChange={(val) =>
             setForm((f) => ({
               ...f,
-              vm: { ...f.vm, disk: convertToMB(Number(val) || 0, diskUnit) },
+              spec: {
+                ...f.spec,
+                vm: {
+                  ...f.spec?.vm,
+                  disk: convertToMB(Number(val) || 0, diskUnit),
+                },
+              },
             }))
           }
           min={0}
@@ -242,13 +266,16 @@ export default function CreateVMWidget({
         <NumberInput
           label="Memory size"
           placeholder="e.g. 2"
-          value={convertFromMB(form.vm?.memory || 0, memoryUnit)}
+          value={convertFromMB(form.spec?.vm?.memory || 0, memoryUnit)}
           onChange={(val) =>
             setForm((f) => ({
               ...f,
-              vm: {
-                ...f.vm,
-                memory: convertToMB(Number(val) || 0, memoryUnit),
+              spec: {
+                ...f.spec,
+                vm: {
+                  ...f.spec?.vm,
+                  memory: convertToMB(Number(val) || 0, memoryUnit),
+                },
               },
             }))
           }
@@ -291,10 +318,10 @@ export default function CreateVMWidget({
           loading={loading}
           disabled={
             !(form.name && form.name.trim()) ||
-            !form.image ||
-            !form.vm?.cpus ||
-            !form.vm?.disk ||
-            !form.vm?.memory ||
+            !form.spec?.image ||
+            !form.spec?.vm?.cpus ||
+            !form.spec?.vm?.disk ||
+            !form.spec?.vm?.memory ||
             loading
           }
         >

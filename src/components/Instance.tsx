@@ -85,9 +85,14 @@ export default function Instance({
     ...initialData,
   } as ServicesV1Info);
 
+  const nodeName = state.node || '';
+  const vmName = instanceName.startsWith(nodeName + ':')
+    ? instanceName.substring(nodeName.length + 1)
+    : instanceName;
+
   const handleStart = async () => {
     try {
-      await controllerClient.start(instanceName);
+      await controllerClient.start(nodeName, vmName);
       notifications.show({
         title: 'Success',
         message: `Instance ${instanceName} started`,
@@ -104,7 +109,7 @@ export default function Instance({
 
   const handleStop = async (force: boolean = false) => {
     try {
-      await controllerClient.stop(instanceName, force);
+      await controllerClient.stop(nodeName, vmName, force);
     } catch {
       notifications.show({
         title: 'Error',
@@ -116,7 +121,7 @@ export default function Instance({
 
   const handleDelete = async () => {
     try {
-      await controllerClient.delete(instanceName);
+      await controllerClient.delete(nodeName, vmName);
     } catch {
       notifications.show({
         title: 'Error',
@@ -127,15 +132,14 @@ export default function Instance({
   };
 
   useEffect(() => {
-    if (updates?.vmEvent?.info?.name === instanceName) {
+    const vmEvent = updates?.update?.vmEvent;
+    const eventName = vmEvent?.info?.name;
+    const eventNode = updates?.node;
+    const eventKey = eventNode ? `${eventNode}:${eventName}` : eventName;
+    if (eventKey === instanceName && vmEvent?.info) {
       dispatch({
         type: VMEvent_EventType.EVENT_TYPE_UPDATED,
-        payload: {
-          details: updates?.vmEvent?.info?.details,
-          runtimeInfo: updates?.vmEvent?.info?.runtimeInfo,
-          name: updates?.vmEvent?.info?.name,
-          state: updates?.vmEvent?.info?.state,
-        } as ServicesV1Info,
+        payload: { node: eventNode, info: vmEvent.info } as ServicesV1Info,
       });
     }
   }, [updates, instanceName]);
@@ -147,7 +151,7 @@ export default function Instance({
           order={2}
           style={{ wordBreak: 'break-word', minWidth: 0, flex: 1 }}
         >
-          {state.name}
+          {state.info?.name}
         </Title>
         <Group gap="xs" style={{ flexShrink: 0 }}>
           <Tooltip label="Start">
@@ -156,7 +160,9 @@ export default function Instance({
               color="green"
               size="lg"
               onClick={handleStart}
-              disabled={stateFromJSON(state.state) !== State.STATE_STOPPED}
+              disabled={
+                stateFromJSON(state.info?.status?.state) !== State.STATE_STOPPED
+              }
             >
               <IconPlayerPlay size={18} />
             </ActionIcon>
@@ -167,7 +173,9 @@ export default function Instance({
               color="red"
               size="lg"
               onClick={() => handleStop(false)}
-              disabled={stateFromJSON(state.state) === State.STATE_STOPPED}
+              disabled={
+                stateFromJSON(state.info?.status?.state) === State.STATE_STOPPED
+              }
             >
               <IconPlayerStop size={18} />
             </ActionIcon>
@@ -178,7 +186,9 @@ export default function Instance({
               color="red"
               size="lg"
               onClick={() => handleStop(true)}
-              disabled={stateFromJSON(state.state) === State.STATE_STOPPED}
+              disabled={
+                stateFromJSON(state.info?.status?.state) === State.STATE_STOPPED
+              }
             >
               <IconPlayerStop size={16} />
             </ActionIcon>
@@ -189,7 +199,9 @@ export default function Instance({
               color="gray"
               size="lg"
               onClick={handleDelete}
-              disabled={stateFromJSON(state.state) !== State.STATE_STOPPED}
+              disabled={
+                stateFromJSON(state.info?.status?.state) !== State.STATE_STOPPED
+              }
             >
               <IconTrash size={18} />
             </ActionIcon>
@@ -200,7 +212,7 @@ export default function Instance({
       <Stack gap="lg">
         <Group>
           <Text fw={500}>Status:</Text>
-          {getStatusBadge(state.state ?? 'Unknown')}
+          {getStatusBadge(state.info?.status?.state ?? 'Unknown')}
           {state.node && (
             <Badge color="cyan" variant="light">
               {state.node}
@@ -208,9 +220,9 @@ export default function Instance({
           )}
         </Group>
 
-        {state.details && (
+        {state.info?.spec?.vm && (
           <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-            {state.details.cpus && (
+            {state.info?.spec?.vm.cpus && (
               <Paper shadow="xs" p="md" radius="md" withBorder>
                 <Group justify="space-between" align="flex-start" mb="sm">
                   <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
@@ -221,14 +233,14 @@ export default function Instance({
                   </ThemeIcon>
                 </Group>
                 <Text fw={700} size="xl">
-                  {state.details.cpus} cores
+                  {state.info?.spec?.vm.cpus} cores
                 </Text>
               </Paper>
             )}
-            {state.details.memory &&
+            {state.info?.spec?.vm.memory &&
               (() => {
-                const memStats = state.runtimeInfo?.memoryStats;
-                const allocatedBytes = mbToBytes(state.details!.memory!);
+                const memStats = state.info?.status?.runtimeInfo?.memoryStats;
+                const allocatedBytes = mbToBytes(state.info!.spec!.vm!.memory!);
                 const allocated = prettyBytes(allocatedBytes, { binary: true });
                 const hasUsage = !!(
                   memStats?.totalMemory &&
@@ -286,10 +298,10 @@ export default function Instance({
                   </Paper>
                 );
               })()}
-            {state.details.disk &&
+            {state.info?.spec?.vm.disk &&
               (() => {
-                const diskStats = state.runtimeInfo?.diskStats;
-                const allocatedBytes = mbToBytes(state.details!.disk!);
+                const diskStats = state.info?.status?.runtimeInfo?.diskStats;
+                const allocatedBytes = mbToBytes(state.info!.spec!.vm!.disk!);
                 const allocated = prettyBytes(allocatedBytes, { binary: true });
                 const hasUsage = !!diskStats?.usedBytes;
                 const used = hasUsage ? Number(diskStats!.usedBytes) : 0;
@@ -342,7 +354,8 @@ export default function Instance({
           </SimpleGrid>
         )}
 
-        {(state.runtimeInfo?.ipaddresses?.length || state.hwaddr) && (
+        {(state.info?.status?.runtimeInfo?.ipaddresses?.length ||
+          state.info?.status?.hwaddr) && (
           <Card withBorder radius="sm" p="md">
             <Group mb="sm">
               <ThemeIcon color="cyan" size={28} radius="md" variant="light">
@@ -351,14 +364,14 @@ export default function Instance({
               <Text fw={500}>Network</Text>
             </Group>
             <Stack gap="xs">
-              {state.runtimeInfo?.ipaddresses &&
-                state.runtimeInfo.ipaddresses.length > 0 && (
+              {state.info?.status?.runtimeInfo?.ipaddresses &&
+                state.info?.status?.runtimeInfo.ipaddresses.length > 0 && (
                   <Group wrap="wrap" gap="sm">
                     <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
                       IP Addresses:
                     </Text>
                     <Group gap="xs" style={{ flex: 1 }}>
-                      {state.runtimeInfo.ipaddresses.map(
+                      {state.info?.status?.runtimeInfo.ipaddresses.map(
                         (ip: string, index: number) => (
                           <Badge key={index} variant="light" color="blue">
                             {ip}
@@ -368,7 +381,7 @@ export default function Instance({
                     </Group>
                   </Group>
                 )}
-              {state.hwaddr && (
+              {state.info?.status?.hwaddr && (
                 <Group wrap="wrap" gap="sm">
                   <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
                     MAC Address:
@@ -379,7 +392,7 @@ export default function Instance({
                     radius="sm"
                     style={{ fontFamily: 'monospace' }}
                   >
-                    {state.hwaddr}
+                    {state.info?.status?.hwaddr}
                   </Badge>
                 </Group>
               )}
@@ -387,7 +400,7 @@ export default function Instance({
           </Card>
         )}
 
-        {state.cloudInit && (
+        {state.info?.spec?.cloudInit && (
           <Card withBorder radius="sm" p="md">
             <Text fw={500} mb="sm">
               Cloud-init
@@ -395,14 +408,14 @@ export default function Instance({
             <Stack gap="xs">
               <YamlEditor
                 label="User-data"
-                value={state?.cloudInit?.userdata || ''}
+                value={state?.info?.spec?.cloudInit?.userdata || ''}
                 editable={false}
                 onChange={() => {}}
                 style={{ minWidth: 0, width: '100%' }}
               />
               <YamlEditor
                 label="Network config"
-                value={state?.cloudInit?.networkConfig || ''}
+                value={state?.info?.spec?.cloudInit?.networkConfig || ''}
                 editable={false}
                 onChange={() => {}}
                 style={{ minWidth: 0, width: '100%' }}
