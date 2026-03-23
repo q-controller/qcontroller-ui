@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { SubscribeRequest, Event } from '@/common/updates';
 import { UpdatesContext } from '@/common/updates-context';
 
@@ -10,33 +10,45 @@ export function UpdatesProvider({
   wsUrl: string;
 }) {
   const [data, setData] = useState<Event | null>(null);
+  const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket(wsUrl);
-    ws.binaryType = 'arraybuffer';
+    let stopped = false;
 
-    ws.onopen = () => {
-      const req: SubscribeRequest = {};
-      const encoded = SubscribeRequest.encode(req).finish();
-      ws.send(encoded);
-    };
+    function connect() {
+      if (stopped) return;
 
-    ws.onmessage = (event) => {
-      const message = Event.decode(new Uint8Array(event.data));
-      setData(message);
-    };
+      const ws = new WebSocket(wsUrl);
+      ws.binaryType = 'arraybuffer';
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+      ws.onopen = () => {
+        const req: SubscribeRequest = {};
+        const encoded = SubscribeRequest.encode(req).finish();
+        ws.send(encoded);
+      };
 
-    ws.onclose = (event) => {
-      console.info('WebSocket closed:', event.code, event.reason);
-    };
+      ws.onmessage = (event) => {
+        const message = Event.decode(new Uint8Array(event.data));
+        setData(message);
+      };
+
+      ws.onclose = () => {
+        if (!stopped) {
+          retryRef.current = setTimeout(connect, 2000);
+        }
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    }
+
+    connect();
 
     return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close();
+      stopped = true;
+      if (retryRef.current) {
+        clearTimeout(retryRef.current);
       }
     };
   }, [wsUrl]);
