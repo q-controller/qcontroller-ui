@@ -5,10 +5,12 @@ import {
   type ServicesOrchestratorV1Info,
   type SettingsV1Node,
 } from '@/generated/controller-client/src';
+import { authMiddleware, csrfHeaderMiddleware } from '@/common/auth-middleware';
 
 const api = new OrchestratorServiceApi(
   new Configuration({
     basePath: '',
+    middleware: [csrfHeaderMiddleware, authMiddleware],
   })
 );
 

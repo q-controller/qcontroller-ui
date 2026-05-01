@@ -1,4 +1,5 @@
 import { Configuration, ImageServiceApi } from '@/generated/image-client/src';
+import { authMiddleware, csrfHeaderMiddleware } from '@/common/auth-middleware';
 
 export class VMImage {
   id: string;
@@ -20,6 +21,7 @@ export interface UploadRequest {
 const imageApi = new ImageServiceApi(
   new Configuration({
     basePath: '',
+    middleware: [csrfHeaderMiddleware, authMiddleware],
   })
 );
 

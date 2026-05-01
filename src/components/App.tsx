@@ -1,12 +1,28 @@
-import { AppShell, Burger, Group, Title, NavLink } from '@mantine/core';
+import {
+  AppShell,
+  Burger,
+  Group,
+  Title,
+  NavLink,
+  Menu,
+  ActionIcon,
+  Text,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconDashboard, IconPhoto } from '@tabler/icons-react';
+import {
+  IconDashboard,
+  IconPhoto,
+  IconUserCircle,
+  IconLogout,
+} from '@tabler/icons-react';
 import { Outlet, Link, useLocation } from 'react-router';
 import { DASHBOARD_PATH, IMAGES_PATH } from '@/common/paths';
+import { useAuth } from '@/common/auth-context';
 
 export default function App() {
   const [opened, { toggle }] = useDisclosure(false);
   const location = useLocation();
+  const { identity, logout } = useAuth();
 
   return (
     <AppShell
@@ -32,6 +48,36 @@ export default function App() {
               VM Control Panel
             </Title>
           </Group>
+          {identity && (
+            <Menu position="bottom-end" withArrow>
+              <Menu.Target>
+                <ActionIcon variant="subtle" c="white" size="lg" aria-label="User menu">
+                  <IconUserCircle size={24} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>
+                  <Text size="sm" fw={500}>
+                    {identity.name || identity.email || identity.subject}
+                  </Text>
+                  {identity.email && identity.name && (
+                    <Text size="xs" c="dimmed">
+                      {identity.email}
+                    </Text>
+                  )}
+                </Menu.Label>
+                <Menu.Divider />
+                <Menu.Item
+                  leftSection={<IconLogout size={14} />}
+                  onClick={() => {
+                    void logout();
+                  }}
+                >
+                  Log out
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          )}
         </Group>
       </AppShell.Header>
 

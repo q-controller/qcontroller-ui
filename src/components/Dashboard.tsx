@@ -73,7 +73,7 @@ export default function Dashboard() {
   const [createOpen, setCreateOpen] = useState(false);
   const createAbortRef = useRef<AbortController | null>(null);
   const [selectedInstance, setSelectedInstance] = useState<string | null>(null);
-  const updates = useContext(UpdatesContext);
+  const { subscribe } = useContext(UpdatesContext);
 
   useEffect(() => {
     controllerClient
@@ -99,15 +99,16 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const vmEvent = updates?.update?.vmEvent;
-    if (vmEvent) {
+    return subscribe((event) => {
+      const vmEvent = event.update?.vmEvent;
+      if (!vmEvent) return;
       switch (vmEvent.type) {
         case VMEvent_EventType.EVENT_TYPE_UPDATED:
           if (vmEvent.info) {
             dispatch({
               type: VMEvent_EventType.EVENT_TYPE_UPDATED,
               payload: {
-                node: updates?.node,
+                node: event.node,
                 info: vmEvent.info,
               } as Partial<ServicesV1Info>,
             });
@@ -115,8 +116,8 @@ export default function Dashboard() {
           break;
         case VMEvent_EventType.EVENT_TYPE_REMOVED:
           if (vmEvent.info?.name) {
-            const removeKey = updates?.node
-              ? `${updates.node}:${vmEvent.info.name}`
+            const removeKey = event.node
+              ? `${event.node}:${vmEvent.info.name}`
               : vmEvent.info.name;
             dispatch({
               type: VMEvent_EventType.EVENT_TYPE_REMOVED,
@@ -127,8 +128,8 @@ export default function Dashboard() {
         default:
           break;
       }
-    }
-  }, [updates]);
+    });
+  }, [subscribe]);
 
   return (
     <Container size="xl" py="xl" px="md">
