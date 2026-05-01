@@ -79,7 +79,7 @@ export default function Instance({
   instanceName: string;
   initialData?: Partial<ServicesV1Info>;
 }) {
-  const updates = useContext(UpdatesContext);
+  const { subscribe } = useContext(UpdatesContext);
   const [state, dispatch] = useReducer(instanceReducer, {
     name: instanceName,
     ...initialData,
@@ -132,17 +132,19 @@ export default function Instance({
   };
 
   useEffect(() => {
-    const vmEvent = updates?.update?.vmEvent;
-    const eventName = vmEvent?.info?.name;
-    const eventNode = updates?.node;
-    const eventKey = eventNode ? `${eventNode}:${eventName}` : eventName;
-    if (eventKey === instanceName && vmEvent?.info) {
-      dispatch({
-        type: VMEvent_EventType.EVENT_TYPE_UPDATED,
-        payload: { node: eventNode, info: vmEvent.info } as ServicesV1Info,
-      });
-    }
-  }, [updates, instanceName]);
+    return subscribe((event) => {
+      const vmEvent = event.update?.vmEvent;
+      const eventName = vmEvent?.info?.name;
+      const eventNode = event.node;
+      const eventKey = eventNode ? `${eventNode}:${eventName}` : eventName;
+      if (eventKey === instanceName && vmEvent?.info) {
+        dispatch({
+          type: VMEvent_EventType.EVENT_TYPE_UPDATED,
+          payload: { node: eventNode, info: vmEvent.info } as ServicesV1Info,
+        });
+      }
+    });
+  }, [subscribe, instanceName]);
 
   return (
     <Card withBorder shadow="sm" radius="md" p="lg">

@@ -61,15 +61,18 @@ export default function CreateVMWidget({
   const [diskUnit, setDiskUnit] = useState<MemoryUnit>('G');
   const [memoryUnit, setMemoryUnit] = useState<MemoryUnit>('G');
   const [form, setForm] = useState<ServicesV1CreateRequest>(defaultForm);
-  const updates = useContext(UpdatesContext);
+  const { subscribe } = useContext(UpdatesContext);
 
   // Listen for progress events while creating.
   useEffect(() => {
-    const progress = updates?.update?.progressEvent;
-    if (!loading || !progress) return;
-    setProgressPercent(progress.percent);
-    setProgressMessage(progress.message);
-  }, [updates, loading]);
+    if (!loading) return;
+    return subscribe((event) => {
+      const progress = event.update?.progressEvent;
+      if (!progress) return;
+      setProgressPercent(progress.percent);
+      setProgressMessage(progress.message);
+    });
+  }, [subscribe, loading]);
 
   const handleCreate = async () => {
     const abort = new AbortController();
