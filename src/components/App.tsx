@@ -51,7 +51,12 @@ export default function App() {
           {identity && (
             <Menu position="bottom-end" withArrow>
               <Menu.Target>
-                <ActionIcon variant="subtle" c="white" size="lg" aria-label="User menu">
+                <ActionIcon
+                  variant="subtle"
+                  c="white"
+                  size="lg"
+                  aria-label="User menu"
+                >
                   <IconUserCircle size={24} />
                 </ActionIcon>
               </Menu.Target>

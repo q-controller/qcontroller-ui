@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import { useLoaderData, useRevalidator } from 'react-router';
 import {
   Table,
   Button,
@@ -79,8 +80,10 @@ const UploadButton = ({
 };
 
 export default function Images() {
-  const [images, setImages] = useState<VMImage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const images = useLoaderData() as VMImage[];
+  const revalidator = useRevalidator();
+  const loading = revalidator.state === 'loading';
+
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -89,26 +92,6 @@ export default function Images() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [customId, setCustomId] = useState('');
   const [idError, setIdError] = useState<string | null>(null);
-
-  const fetchImages = async () => {
-    try {
-      setLoading(true);
-      const imgs = await imageClient.list();
-      setImages(imgs);
-    } catch (err) {
-      notifications.show({
-        title: 'Error',
-        message: err instanceof Error ? err.message : 'Failed to load images',
-        color: 'red',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchImages();
-  }, []);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
@@ -130,9 +113,7 @@ export default function Images() {
         file: selectedFile,
         id: customId.trim(),
       });
-      // Optimistic update
-      const imgs = await imageClient.list();
-      setImages(imgs);
+      revalidator.revalidate();
       setUploadDialogOpen(false);
       setSelectedFile(null);
       setCustomId('');
@@ -163,8 +144,7 @@ export default function Images() {
     try {
       setDeleting(id);
       await imageClient.delete(id);
-      const imgs = await imageClient.list();
-      setImages(imgs);
+      revalidator.revalidate();
       notifications.show({
         title: 'Success',
         message: 'VM image deleted successfully',
@@ -180,16 +160,6 @@ export default function Images() {
       setDeleting(null);
     }
   };
-
-  // Loading state
-  if (loading && images.length === 0) {
-    return (
-      <Stack align="center" py="xl">
-        <Loader size="lg" />
-        <Text c="dimmed">Loading VM images...</Text>
-      </Stack>
-    );
-  }
 
   return (
     <Stack gap="md">
