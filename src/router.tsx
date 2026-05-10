@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import React from 'react';
 const Dashboard = React.lazy(() => import('@/components/Dashboard'));
 const App = React.lazy(() => import('@/components/App'));
-const Images = React.lazy(() => import('@/components/Images'));
 const NotFound = React.lazy(() => import('@/components/NotFound'));
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -23,7 +22,13 @@ export const router = createBrowserRouter(
         },
         {
           path: 'images',
-          element: <Images></Images>,
+          lazy: async () => {
+            const [mod, loaderMod] = await Promise.all([
+              import('@/components/Images'),
+              import('@/components/Images.loader'),
+            ]);
+            return { Component: mod.default, loader: loaderMod.loader };
+          },
         },
         {
           path: '*',
