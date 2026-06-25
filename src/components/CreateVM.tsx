@@ -1,4 +1,10 @@
-import React, { type RefObject, useContext, useEffect, useState } from 'react';
+import React, {
+  type RefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import {
   TextInput,
   Button,
@@ -74,6 +80,58 @@ export default function CreateVMWidget({
     });
   }, [subscribe, loading]);
 
+  const loadImages = useCallback(async () => {
+    try {
+      const imgs = await imageClient.list();
+      const opts = imgs
+        .map((img) => ({ value: img.id, label: img.id }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+      setImageOptions(opts);
+      if (opts.length > 0) {
+        setForm((f) =>
+          f.spec?.image
+            ? f
+            : { ...f, spec: { ...f.spec, image: opts[0].value } }
+        );
+      }
+    } catch {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to fetch images',
+        color: 'red',
+      });
+    }
+  }, []);
+
+  const loadNodes = useCallback(async () => {
+    try {
+      const nodes = await controllerClient.listNodes();
+      const opts = nodes
+        .map((n) => ({ value: n.name || '', label: n.name || '' }))
+        .filter((o) => o.value)
+        .sort((a, b) => a.label.localeCompare(b.label));
+      setNodeOptions(opts);
+      if (opts.length > 0) {
+        setForm((f) => (f.node ? f : { ...f, node: opts[0].value }));
+      }
+    } catch {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to fetch nodes',
+        color: 'red',
+      });
+    }
+  }, []);
+
+  // Populate the dropdowns up front so they're sorted and a sensible
+  // default is preselected, rather than loading lazily on focus.
+  useEffect(() => {
+    void (async () => {
+      await loadImages();
+      await loadNodes();
+    })();
+  }, [loadImages, loadNodes]);
+
   const handleCreate = async () => {
     const abort = new AbortController();
     abortRef.current = abort;
@@ -82,7 +140,12 @@ export default function CreateVMWidget({
     setProgressMessage('');
     try {
       await controllerClient.create(form, abort.signal);
-      setForm(defaultForm);
+      // Reset the form but keep the dropdowns at their sensible defaults.
+      setForm({
+        ...defaultForm,
+        node: nodeOptions[0]?.value ?? '',
+        spec: { ...defaultForm.spec, image: imageOptions[0]?.value ?? '' },
+      });
     } catch {
       if (abort.signal.aborted) return;
       notifications.show({
@@ -134,47 +197,22 @@ export default function CreateVMWidget({
         }
         disabled={loading}
         required
-        searchable
-        onFocus={async () => {
-          if (imageOptions.length === 0) {
-            try {
-              const imgs = await imageClient.list();
-              setImageOptions(
-                imgs.map((img) => ({ value: img.id, label: img.id }))
-              );
-            } catch {
-              notifications.show({
-                title: 'Error',
-                message: 'Failed to fetch images',
-                color: 'red',
-              });
-            }
-          }
+        allowDeselect={false}
+        onFocus={() => {
+          if (imageOptions.length === 0) loadImages();
         }}
       />
       <Select
         label="Node"
-        placeholder="Auto (scheduler picks)"
+        placeholder="Select node"
         data={nodeOptions}
         value={form.node || null}
         onChange={(val) => setForm((f) => ({ ...f, node: val || '' }))}
         disabled={loading}
-        clearable
-        onFocus={async () => {
-          if (nodeOptions.length === 0) {
-            try {
-              const nodes = await controllerClient.listNodes();
-              setNodeOptions(
-                nodes.map((n) => ({ value: n.name || '', label: n.name || '' }))
-              );
-            } catch {
-              notifications.show({
-                title: 'Error',
-                message: 'Failed to fetch nodes',
-                color: 'red',
-              });
-            }
-          }
+        required
+        allowDeselect={false}
+        onFocus={() => {
+          if (nodeOptions.length === 0) loadNodes();
         }}
       />
       <Checkbox
@@ -249,7 +287,8 @@ export default function CreateVMWidget({
             }))
           }
           min={0}
-          step={0.1}
+          step={1}
+          decimalScale={2}
           decimalSeparator="."
           disabled={loading}
           required
@@ -283,7 +322,8 @@ export default function CreateVMWidget({
             }))
           }
           min={0}
-          step={0.1}
+          step={1}
+          decimalScale={2}
           decimalSeparator="."
           disabled={loading}
           required
@@ -321,6 +361,7 @@ export default function CreateVMWidget({
           loading={loading}
           disabled={
             !(form.name && form.name.trim()) ||
+            !form.node ||
             !form.spec?.image ||
             !form.spec?.vm?.cpus ||
             !form.spec?.vm?.disk ||
