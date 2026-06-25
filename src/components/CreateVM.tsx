@@ -48,6 +48,19 @@ const defaultForm: ServicesV1CreateRequest = {
   start: true,
 };
 
+// The VM name is used as the instance id, which becomes the Linux TAP
+// interface name. Linux interface names must be 1-15 characters, start with
+// a letter, and contain only letters, digits, '.', '-' or '_'.
+const validateVMName = (name: string): string | null => {
+  const n = name.trim();
+  if (!n) return null; // emptiness is handled by the required field
+  if (n.length > 15) return 'Name must be at most 15 characters';
+  if (!/^[A-Za-z]/.test(n)) return 'Name must start with a letter';
+  if (!/^[A-Za-z][A-Za-z0-9._-]*$/.test(n))
+    return 'Use only letters, digits, dot, hyphen or underscore';
+  return null;
+};
+
 export default function CreateVMWidget({
   abortRef,
   onCancel,
@@ -172,6 +185,8 @@ export default function CreateVMWidget({
     onCancel?.();
   };
 
+  const nameError = validateVMName(form.name ?? '');
+
   return (
     <Stack gap="md">
       <TextInput
@@ -184,6 +199,7 @@ export default function CreateVMWidget({
             name: e.currentTarget?.value,
           }))
         }
+        error={nameError}
         disabled={loading}
         required
       />
@@ -361,6 +377,7 @@ export default function CreateVMWidget({
           loading={loading}
           disabled={
             !(form.name && form.name.trim()) ||
+            !!nameError ||
             !form.node ||
             !form.spec?.image ||
             !form.spec?.vm?.cpus ||
