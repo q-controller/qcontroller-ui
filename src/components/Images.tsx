@@ -57,7 +57,15 @@ const UploadButton = ({
 
   return (
     <FileButton
-      onChange={(file) => file && onFileSelect(file)}
+      onChange={(file) => {
+        if (!file) return;
+        onFileSelect(file);
+        // Reset the hidden file input so picking the same file again still
+        // fires onChange (otherwise its value is unchanged and it doesn't).
+        if (fileButtonRef.current) {
+          fileButtonRef.current();
+        }
+      }}
       resetRef={fileButtonRef}
       disabled={loading}
     >
