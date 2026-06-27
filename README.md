@@ -67,4 +67,6 @@ The project uses code generation (OpenAPI and protobuf) for type-safe API commun
 
 <img src="./instance.png" alt="Instance view" width="900"/>
 
+<img src="./logs.png" alt="Logs view" width="900"/>
+
 <img src="./images.png" alt="Images view" width="900"/>

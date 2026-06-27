@@ -175,6 +175,15 @@ export default function Dashboard() {
           onClose={() => setSelectedInstance(null)}
           size="xl"
           fullScreen
+          styles={{
+            content: { display: 'flex', flexDirection: 'column' },
+            body: {
+              flex: 1,
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+            },
+          }}
         >
           {selectedInstance && (
             <InstanceWidget
