@@ -80,9 +80,5 @@ export function UpdatesProvider({
     };
   }, [wsUrl]);
 
-  return (
-    <UpdatesContext.Provider value={{ subscribe }}>
-      {children}
-    </UpdatesContext.Provider>
-  );
+  return <UpdatesContext value={{ subscribe }}>{children}</UpdatesContext>;
 }
