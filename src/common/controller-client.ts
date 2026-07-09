@@ -3,6 +3,7 @@ import {
   OrchestratorServiceApi,
   type ServicesOrchestratorV1CreateRequest,
   type ServicesOrchestratorV1Info,
+  type ServicesProcessV1Snapshot,
   type SettingsV1Node,
 } from '@/generated/controller-client/src';
 import { authMiddleware, csrfHeaderMiddleware } from '@/common/auth-middleware';
@@ -84,9 +85,39 @@ export const controllerClient = {
     const response = await api.orchestratorServiceListNodes();
     return response.nodes || [];
   },
+
+  async snapshotList(
+    node: string,
+    name: string
+  ): Promise<Array<ServicesProcessV1Snapshot>> {
+    const response = await api.orchestratorServiceSnapshotList({ node, name });
+    return response.snapshots || [];
+  },
+
+  async snapshotSave(node: string, name: string, tag: string): Promise<void> {
+    await api.orchestratorServiceSnapshotSave({
+      node,
+      name,
+      servicesOrchestratorV1SnapshotSaveRequest: { tag },
+    });
+  },
+
+  async snapshotLoad(node: string, name: string, tag: string): Promise<void> {
+    await api.orchestratorServiceSnapshotLoad({
+      node,
+      name,
+      tag,
+      servicesOrchestratorV1SnapshotLoadRequest: {},
+    });
+  },
+
+  async snapshotDelete(node: string, name: string, tag: string): Promise<void> {
+    await api.orchestratorServiceSnapshotDelete({ node, name, tag });
+  },
 };
 
 export type { SettingsV1VM } from '@/generated/controller-client/src';
 export type { ServicesOrchestratorV1Info as ServicesV1Info } from '@/generated/controller-client/src';
 export type { ServicesOrchestratorV1CreateRequest as ServicesV1CreateRequest } from '@/generated/controller-client/src';
 export type { SettingsV1Node } from '@/generated/controller-client/src';
+export type { ServicesProcessV1Snapshot } from '@/generated/controller-client/src';

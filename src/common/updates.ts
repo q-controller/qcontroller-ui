@@ -1,6 +1,7 @@
 export {
   SubscribeRequest,
   VMEvent_EventType,
+  SnapshotEvent_Phase,
 } from '@/generated/proto/services/event/v1/messages';
 
 export { Event } from '@/generated/proto/services/orchestrator/v1/messages';
