@@ -33,6 +33,7 @@ import {
   IconNetwork,
 } from '@tabler/icons-react';
 import { LogTerminal, type LogTerminalHandle } from '@/components/InstanceLogs';
+import Snapshots from '@/components/Snapshots';
 import { Kind } from '@/generated/proto/services/process/v1/messages';
 import { UpdatesContext } from '@/common/updates-context';
 import { LogsContext } from '@/common/logs-context';
@@ -272,6 +273,7 @@ export default function Instance({
           <Tabs.Tab value="info">Info</Tabs.Tab>
           <Tabs.Tab value="stdout">stdout</Tabs.Tab>
           <Tabs.Tab value="stderr">stderr</Tabs.Tab>
+          <Tabs.Tab value="snapshots">Snapshots</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel
@@ -518,6 +520,18 @@ export default function Instance({
         </Tabs.Panel>
         <Tabs.Panel value="stderr" style={fillColumn}>
           {logsOpened && <LogTerminal ref={stderrRef} />}
+        </Tabs.Panel>
+        <Tabs.Panel
+          value="snapshots"
+          style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}
+        >
+          <Snapshots
+            node={nodeName}
+            name={vmName}
+            running={
+              stateFromJSON(state.info?.status?.state) === State.STATE_RUNNING
+            }
+          />
         </Tabs.Panel>
       </Tabs>
     </Card>
