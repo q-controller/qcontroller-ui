@@ -41,6 +41,7 @@ import { controllerClient } from '@/common/controller-client';
 import type { ServicesV1Info } from '@/common/controller-client';
 import { VMEvent_EventType } from '@/common/updates';
 import { State, stateFromJSON } from '@/common/updates';
+import tokens from '@/generated/tokens';
 import { notifications } from '@mantine/notifications';
 import prettyBytes from 'pretty-bytes';
 import { mbToBytes } from '@/common/unit-conversion';
@@ -57,25 +58,48 @@ const fillColumn: React.CSSProperties = {
   flexDirection: 'column',
 };
 
-const getStatusBadge = (status: string) => {
-  const state = stateFromJSON(status);
-  let color = 'gray';
+type VmStatusKind = 'running' | 'stopped' | 'pending' | 'error';
+
+const vmStatusKind = (state: State): VmStatusKind => {
   switch (state) {
     case State.STATE_RUNNING:
-      color = 'green';
-      break;
+      return 'running';
     case State.STATE_STOPPED:
-      color = 'red';
-      break;
+      return 'stopped';
     case State.STATE_STARTING:
-      color = 'yellow';
-      break;
     case State.STATE_REQUESTINGSTOP:
-      color = 'orange';
-      break;
+      return 'pending';
+    default:
+      return 'error';
   }
+};
+
+const getStatusBadge = (status: string) => {
+  const kind = vmStatusKind(stateFromJSON(status));
   return (
-    <Badge color={color} variant="filled">
+    <Badge
+      leftSection={
+        <span
+          style={{
+            display: 'block',
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            backgroundColor: `var(--color-semantic-vm-${kind}-indicator)`,
+          }}
+        />
+      }
+      styles={{
+        root: {
+          backgroundColor: `var(--color-semantic-vm-${kind}-bg)`,
+          color: `var(--color-semantic-vm-${kind}-text)`,
+          borderRadius: 'var(--radius-pill)',
+          fontSize: 'var(--font-size-xs)',
+          fontWeight: Number(tokens.font.weight.semibold.$value),
+          textTransform: 'uppercase',
+        },
+      }}
+    >
       {status || 'Unknown'}
     </Badge>
   );
@@ -206,7 +230,7 @@ export default function Instance({
           <Tooltip label="Start">
             <ActionIcon
               variant="filled"
-              color="green"
+              className="action-primary"
               size="lg"
               onClick={handleStart}
               disabled={
@@ -218,8 +242,8 @@ export default function Instance({
           </Tooltip>
           <Tooltip label="Stop (soft)">
             <ActionIcon
-              variant="filled"
-              color="red"
+              variant="outline"
+              className="action-danger"
               size="lg"
               onClick={() => handleStop(false)}
               disabled={
@@ -231,8 +255,8 @@ export default function Instance({
           </Tooltip>
           <Tooltip label="Force Stop">
             <ActionIcon
-              variant="outline"
-              color="red"
+              variant="filled"
+              className="action-danger-solid"
               size="lg"
               onClick={() => handleStop(true)}
               disabled={
@@ -244,8 +268,8 @@ export default function Instance({
           </Tooltip>
           <Tooltip label="Delete">
             <ActionIcon
-              variant="filled"
-              color="gray"
+              variant="outline"
+              className="action-danger"
               size="lg"
               onClick={handleDelete}
               disabled={

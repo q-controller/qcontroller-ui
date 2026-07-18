@@ -60,7 +60,7 @@ export default function Nodes() {
               </ThemeIcon>
             </Group>
             <Group gap="xs">
-              <IconNetwork size={14} color="gray" />
+              <IconNetwork size={14} color="var(--color-semantic-text-muted)" />
               <Badge variant="light" color="gray" size="lg" radius="sm">
                 {node.endpoint}
               </Badge>
