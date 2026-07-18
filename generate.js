@@ -33,3 +33,7 @@ execSync(
     --additional-properties=supportsES6=true,npmName=qcontroller-client,withInterfaces=true`,
   { stdio: 'inherit' }
 );
+
+execSync('style-dictionary build --config style-dictionary.config.mjs', {
+  stdio: 'inherit',
+});

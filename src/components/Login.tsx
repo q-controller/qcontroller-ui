@@ -9,7 +9,7 @@ export interface LoginProps {
 
 export default function Login({ providers }: LoginProps) {
   return (
-    <Center mih="100vh" bg="gray.0">
+    <Center mih="100vh" bg="var(--color-semantic-surface-page)">
       <Paper shadow="md" p="xl" radius="md" withBorder maw={400} w="100%">
         <Stack>
           <Title order={3} ta="center">

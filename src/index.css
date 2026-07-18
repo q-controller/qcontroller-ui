@@ -1,2 +1,29 @@
+@import './generated/tokens.css';
 @import '@mantine/core/styles.css';
 @import '@mantine/notifications/styles.css';
+
+/* Action semantics (see design/components.md): primary = filled accent,
+   destructive = outline danger. The :not() guards keep Mantine's disabled
+   styling intact. */
+.action-primary:not(:disabled):not([data-disabled]) {
+  background-color: var(--color-semantic-accent-default);
+  color: var(--color-semantic-accent-on-accent);
+}
+.action-primary:not(:disabled):not([data-disabled]):hover {
+  background-color: var(--color-semantic-accent-hover);
+}
+.action-danger:not(:disabled):not([data-disabled]) {
+  background-color: transparent;
+  color: var(--color-semantic-danger-text);
+  border: var(--border-width-default) solid var(--color-semantic-danger-border);
+}
+.action-danger:not(:disabled):not([data-disabled]):hover {
+  background-color: var(--color-semantic-danger-border);
+}
+.action-danger-solid:not(:disabled):not([data-disabled]) {
+  background-color: var(--color-semantic-danger-solid);
+  color: var(--color-semantic-danger-on-solid);
+}
+.action-danger-solid:not(:disabled):not([data-disabled]):hover {
+  background-color: var(--color-semantic-danger-solid-hover);
+}
