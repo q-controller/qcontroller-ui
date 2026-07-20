@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en" data-mantine-color-scheme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>qcontroller design reference</title>
+    <!-- Values come from the generated tokens; run `yarn generate:tokens` first. -->
+    <link rel="stylesheet" href="../src/generated/tokens.css" />
+    <link rel="stylesheet" href="../src/generated/tokens.dark.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        font-family: var(--font-family-sans);
+        font-size: var(--font-size-md);
+        line-height: var(--font-line-height-normal);
+        background: var(--color-semantic-surface-page);
+        color: var(--color-semantic-text-primary);
+        padding: var(--space-6);
+      }
+      .mono {
+        font-family: var(--font-family-mono);
+      }
+      h2 {
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-semibold);
+        margin: var(--space-5) 0 var(--space-3);
+      }
+      .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--color-semantic-surface-header);
+        color: var(--color-semantic-text-on-header);
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius-md);
+        font-weight: var(--font-weight-semibold);
+      }
+      .header-bar button {
+        font: inherit;
+        cursor: pointer;
+        padding: var(--space-1) var(--space-3);
+        border: var(--border-width-default) solid currentColor;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: inherit;
+      }
+      .card {
+        background: var(--color-semantic-surface-card);
+        border: var(--border-width-default) solid
+          var(--color-semantic-border-default);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card);
+        padding: var(--space-4);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        align-items: center;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: var(--radius-pill);
+        padding: 3px 10px;
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-semibold);
+        text-transform: uppercase;
+      }
+      .badge::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--dot);
+      }
+      .running {
+        --dot: var(--color-semantic-vm-running-indicator);
+        background: var(--color-semantic-vm-running-bg);
+        color: var(--color-semantic-vm-running-text);
+      }
+      .stopped {
+        --dot: var(--color-semantic-vm-stopped-indicator);
+        background: var(--color-semantic-vm-stopped-bg);
+        color: var(--color-semantic-vm-stopped-text);
+      }
+      .pending {
+        --dot: var(--color-semantic-vm-pending-indicator);
+        background: var(--color-semantic-vm-pending-bg);
+        color: var(--color-semantic-vm-pending-text);
+      }
+      .error {
+        --dot: var(--color-semantic-vm-error-indicator);
+        background: var(--color-semantic-vm-error-bg);
+        color: var(--color-semantic-vm-error-text);
+      }
+      .btn {
+        font: inherit;
+        font-weight: var(--font-weight-medium);
+        cursor: pointer;
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-sm);
+        border: var(--border-width-default) solid transparent;
+      }
+      .primary {
+        background: var(--color-semantic-accent-default);
+        color: var(--color-semantic-accent-on-accent);
+      }
+      .primary:hover {
+        background: var(--color-semantic-accent-hover);
+      }
+      .danger {
+        background: transparent;
+        color: var(--color-semantic-danger-text);
+        border-color: var(--color-semantic-danger-border);
+      }
+      .danger:hover {
+        background: var(--color-semantic-danger-border);
+      }
+      .danger-solid {
+        background: var(--color-semantic-danger-solid);
+        color: var(--color-semantic-danger-on-solid);
+      }
+      .danger-solid:hover {
+        background: var(--color-semantic-danger-solid-hover);
+      }
+      .muted {
+        color: var(--color-semantic-text-muted);
+      }
+      .secondary {
+        color: var(--color-semantic-text-secondary);
+      }
+      .ramp {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-bottom: var(--space-4);
+      }
+      .ramp .sw {
+        position: relative;
+        width: 44px;
+        height: 36px;
+        border-radius: var(--radius-sm);
+        border: var(--border-width-default) solid
+          var(--color-semantic-border-default);
+        margin-bottom: var(--space-3);
+      }
+      .ramp .sw::after {
+        content: attr(data-shade);
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-family: var(--font-family-mono);
+        font-size: var(--font-size-xs);
+        color: var(--color-semantic-text-muted);
+      }
+      .ramp-name {
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-semantic-text-secondary);
+        margin-bottom: var(--space-1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header-bar">
+      <span>VM Control Panel - header surface</span>
+      <button id="toggle">dark</button>
+    </div>
+
+    <h2>VM status badges</h2>
+    <div class="card">
+      <span class="badge running">running</span>
+      <span class="badge stopped">stopped</span>
+      <span class="badge pending">pending</span>
+      <span class="badge error">error</span>
+    </div>
+
+    <h2>Actions</h2>
+    <div class="card">
+      <button class="btn primary">Start</button>
+      <button class="btn primary">Create VM</button>
+      <button class="btn danger">Stop</button>
+      <button class="btn danger">Delete</button>
+      <button class="btn danger-solid">Force Stop</button>
+    </div>
+
+    <h2>Primitive ramps</h2>
+    <div class="card" style="display: block">
+      <div class="ramp-name">blue</div>
+      <div class="ramp">
+        <div
+          class="sw"
+          data-shade="50"
+          style="background: var(--color-blue-50)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="100"
+          style="background: var(--color-blue-100)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="200"
+          style="background: var(--color-blue-200)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="300"
+          style="background: var(--color-blue-300)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="400"
+          style="background: var(--color-blue-400)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="500"
+          style="background: var(--color-blue-500)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="600"
+          style="background: var(--color-blue-600)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="700"
+          style="background: var(--color-blue-700)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="800"
+          style="background: var(--color-blue-800)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="900"
+          style="background: var(--color-blue-900)"
+        ></div>
+      </div>
+      <div class="ramp-name">cyan (collapses onto blue in dark)</div>
+      <div class="ramp">
+        <div
+          class="sw"
+          data-shade="50"
+          style="background: var(--color-cyan-50)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="100"
+          style="background: var(--color-cyan-100)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="200"
+          style="background: var(--color-cyan-200)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="300"
+          style="background: var(--color-cyan-300)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="400"
+          style="background: var(--color-cyan-400)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="500"
+          style="background: var(--color-cyan-500)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="600"
+          style="background: var(--color-cyan-600)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="700"
+          style="background: var(--color-cyan-700)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="800"
+          style="background: var(--color-cyan-800)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="900"
+          style="background: var(--color-cyan-900)"
+        ></div>
+      </div>
+      <div class="ramp-name">gray</div>
+      <div class="ramp">
+        <div
+          class="sw"
+          data-shade="0"
+          style="background: var(--color-gray-0)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="50"
+          style="background: var(--color-gray-50)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="100"
+          style="background: var(--color-gray-100)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="200"
+          style="background: var(--color-gray-200)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="300"
+          style="background: var(--color-gray-300)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="400"
+          style="background: var(--color-gray-400)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="500"
+          style="background: var(--color-gray-500)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="600"
+          style="background: var(--color-gray-600)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="700"
+          style="background: var(--color-gray-700)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="800"
+          style="background: var(--color-gray-800)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="900"
+          style="background: var(--color-gray-900)"
+        ></div>
+      </div>
+      <div class="ramp-name">green</div>
+      <div class="ramp">
+        <div
+          class="sw"
+          data-shade="50"
+          style="background: var(--color-green-50)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="100"
+          style="background: var(--color-green-100)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="200"
+          style="background: var(--color-green-200)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="300"
+          style="background: var(--color-green-300)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="400"
+          style="background: var(--color-green-400)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="500"
+          style="background: var(--color-green-500)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="600"
+          style="background: var(--color-green-600)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="700"
+          style="background: var(--color-green-700)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="800"
+          style="background: var(--color-green-800)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="900"
+          style="background: var(--color-green-900)"
+        ></div>
+      </div>
+      <div class="ramp-name">orange</div>
+      <div class="ramp">
+        <div
+          class="sw"
+          data-shade="50"
+          style="background: var(--color-orange-50)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="100"
+          style="background: var(--color-orange-100)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="200"
+          style="background: var(--color-orange-200)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="300"
+          style="background: var(--color-orange-300)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="400"
+          style="background: var(--color-orange-400)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="500"
+          style="background: var(--color-orange-500)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="600"
+          style="background: var(--color-orange-600)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="700"
+          style="background: var(--color-orange-700)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="800"
+          style="background: var(--color-orange-800)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="900"
+          style="background: var(--color-orange-900)"
+        ></div>
+      </div>
+      <div class="ramp-name">red</div>
+      <div class="ramp">
+        <div
+          class="sw"
+          data-shade="50"
+          style="background: var(--color-red-50)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="100"
+          style="background: var(--color-red-100)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="200"
+          style="background: var(--color-red-200)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="300"
+          style="background: var(--color-red-300)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="400"
+          style="background: var(--color-red-400)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="500"
+          style="background: var(--color-red-500)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="600"
+          style="background: var(--color-red-600)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="700"
+          style="background: var(--color-red-700)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="800"
+          style="background: var(--color-red-800)"
+        ></div>
+        <div
+          class="sw"
+          data-shade="900"
+          style="background: var(--color-red-900)"
+        ></div>
+      </div>
+    </div>
+
+    <h2>Card and typography</h2>
+    <div class="card" style="display: block">
+      <div
+        style="
+          font-size: var(--font-size-lg);
+          font-weight: var(--font-weight-semibold);
+        "
+      >
+        instance-name (sans 600)
+      </div>
+      <div class="mono muted" style="font-size: var(--font-size-sm)">
+        4 vCPU + 8 GiB + ubuntu2404 (mono, muted)
+      </div>
+      <div class="secondary" style="margin-top: var(--space-2)">
+        Secondary text on a card surface with border, radius.md and shadow.card
+        (flat in dark).
+      </div>
+    </div>
+
+    <script>
+      const toggle = document.getElementById('toggle');
+      toggle.addEventListener('click', () => {
+        const root = document.documentElement;
+        const dark = root.dataset.mantineColorScheme !== 'dark';
+        root.dataset.mantineColorScheme = dark ? 'dark' : 'light';
+        toggle.textContent = dark ? 'light' : 'dark';
+      });
+    </script>
+  </body>
+</html>
