@@ -1,15 +1,13 @@
 import { createBrowserRouter, Navigate } from 'react-router';
-import React from 'react';
-const Dashboard = React.lazy(() => import('@/components/Dashboard'));
-const App = React.lazy(() => import('@/components/App'));
-const NotFound = React.lazy(() => import('@/components/NotFound'));
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 export const router = createBrowserRouter(
   [
     {
       path: '/',
-      element: <App />,
+      lazy: async () => ({
+        Component: (await import('@/components/App')).default,
+      }),
       errorElement: <ErrorBoundary />,
       children: [
         {
@@ -18,7 +16,9 @@ export const router = createBrowserRouter(
         },
         {
           path: 'dashboard',
-          element: <Dashboard />,
+          lazy: async () => ({
+            Component: (await import('@/components/Dashboard')).default,
+          }),
         },
         {
           path: 'images',
@@ -32,7 +32,9 @@ export const router = createBrowserRouter(
         },
         {
           path: '*',
-          element: <NotFound />,
+          lazy: async () => ({
+            Component: (await import('@/components/NotFound')).default,
+          }),
         },
       ],
     },
