@@ -9,6 +9,16 @@ export interface LogTerminalHandle {
   clear: () => void;
 }
 
+// Resolve the semantic surface/text tokens for the active colour scheme;
+// xterm needs concrete colour values, not CSS variables.
+const terminalTheme = () => {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    background: style.getPropertyValue('--color-semantic-surface-card').trim(),
+    foreground: style.getPropertyValue('--color-semantic-text-primary').trim(),
+  };
+};
+
 // LogTerminal is a read-only xterm terminal. It interprets the full ANSI
 // stream (colours, cursor moves, screen clears) the way a real serial console
 // would.
@@ -33,6 +43,7 @@ export function LogTerminal({
       scrollback,
       fontSize,
       fontFamily: theme.fontFamilyMonospace,
+      theme: terminalTheme(),
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
@@ -68,11 +79,8 @@ export function LogTerminal({
   useEffect(() => {
     const term = termRef.current;
     if (!term) return;
-    term.options.theme =
-      scheme === 'dark'
-        ? { background: theme.black, foreground: theme.white }
-        : { background: theme.white, foreground: theme.black };
-  }, [scheme, theme.black, theme.white]);
+    term.options.theme = terminalTheme();
+  }, [scheme]);
 
   useImperativeHandle(
     ref,

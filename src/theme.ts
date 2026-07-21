@@ -1,5 +1,10 @@
-import { createTheme, type MantineColorsTuple } from '@mantine/core';
+import {
+  createTheme,
+  virtualColor,
+  type MantineColorsTuple,
+} from '@mantine/core';
 import tokens from '@/generated/tokens';
+import darkTokens from '@/generated/tokens.dark';
 
 // Leaves of tokens.js are Style Dictionary token objects; $value holds the value.
 interface Token {
@@ -14,12 +19,6 @@ const fontStack = (t: Token) =>
     .map((f) => (f.includes(' ') ? `'${f}'` : f))
     .join(', ');
 
-const shadow = (t: Token) => {
-  const s = t.$value as Record<string, string>;
-  return `${s.offsetX} ${s.offsetY} ${s.blur} ${s.spread} ${s.color}`;
-};
-
-const blue = tokens.color.blue;
 const gray = tokens.color.gray;
 const white = color(gray[0]);
 
@@ -54,12 +53,34 @@ const grayTuple: MantineColorsTuple = [
 export const theme = createTheme({
   primaryColor: 'blue',
   colors: {
-    blue: rampTuple(tokens.color.blue),
-    cyan: rampTuple(tokens.color.cyan),
+    // Brand blue in light; the muted steel ramp from tokens.dark.json in dark,
+    // so filled elements (buttons, active nav) don't glare on dark surfaces.
+    // Cyan follows the same scheme split; its dark ramp references the blue
+    // ramp in tokens.dark.json, so all blue-family accents match in dark.
+    blue: virtualColor({ name: 'blue', light: 'blueLight', dark: 'blueDark' }),
+    cyan: virtualColor({ name: 'cyan', light: 'cyanLight', dark: 'cyanDark' }),
+    blueLight: rampTuple(tokens.color.blue),
+    blueDark: rampTuple(darkTokens.color.blue),
+    cyanLight: rampTuple(tokens.color.cyan),
+    cyanDark: rampTuple(darkTokens.color.cyan),
     gray: grayTuple,
     green: rampTuple(tokens.color.green),
     orange: rampTuple(tokens.color.orange),
     red: rampTuple(tokens.color.red),
+    // Mantine's dark-scheme surface/text palette, indexed 0-9 like Mantine
+    // expects; sourced from the color.dark ramp in tokens.dark.json.
+    dark: [
+      color(darkTokens.color.dark[0]),
+      color(darkTokens.color.dark[1]),
+      color(darkTokens.color.dark[2]),
+      color(darkTokens.color.dark[3]),
+      color(darkTokens.color.dark[4]),
+      color(darkTokens.color.dark[5]),
+      color(darkTokens.color.dark[6]),
+      color(darkTokens.color.dark[7]),
+      color(darkTokens.color.dark[8]),
+      color(darkTokens.color.dark[9]),
+    ] as MantineColorsTuple,
   },
   white,
   black: color(gray[900]),
@@ -84,9 +105,11 @@ export const theme = createTheme({
     lg: dim(tokens.space[5]),
     xl: dim(tokens.space[6]),
   },
+  // Via the generated CSS variables (not baked-in strings) so the dark-scheme
+  // overrides in tokens.dark.json apply: dark flattens card shadows entirely.
   shadows: {
-    xs: shadow(tokens.shadow.card),
-    sm: shadow(tokens.shadow.raised),
+    xs: 'var(--shadow-card)',
+    sm: 'var(--shadow-raised)',
   },
   headings: {
     fontFamily: fontStack(tokens.font.family.sans),
