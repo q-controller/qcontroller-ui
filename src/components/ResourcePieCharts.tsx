@@ -18,6 +18,7 @@ import {
 } from '@tabler/icons-react';
 import type { Stats } from '@/common/stats';
 import prettyBytes from 'pretty-bytes';
+import pluralize from 'pluralize';
 
 interface VMData {
   label: string;
@@ -88,7 +89,7 @@ function ResourceCard({
                 <Text fw={700} size="lg">
                   {data.some((d) => d.used !== undefined)
                     ? prettyBytes(totalAllocated, { binary: true })
-                    : `${totalAllocated}${unit}`}
+                    : pluralize(unit, totalAllocated, true)}
                 </Text>
               </Stack>
             </ThemeIcon>
@@ -130,7 +131,7 @@ function ResourceCard({
                     ? `${prettyBytes(item.used!, { binary: true })} / ${prettyBytes(item.value, { binary: true })}`
                     : item.used !== undefined
                       ? prettyBytes(item.value, { binary: true })
-                      : `${item.value}${unit}`}
+                      : pluralize(unit, item.value, true)}
                 </Text>
               </Group>
               <Progress
@@ -218,21 +219,21 @@ export default function ResourcePieCharts({
       title: 'Memory',
       icon: <IconDeviceDesktop size={20} />,
       data: ramData,
-      unit: ' GB',
+      unit: 'GB',
       color: 'blue',
     },
     {
       title: 'Storage',
       icon: <IconDatabase size={20} />,
       data: diskData,
-      unit: ' GB',
+      unit: 'GB',
       color: 'green',
     },
     {
       title: 'CPU',
       icon: <IconCpu size={20} />,
       data: cpusData,
-      unit: ' cores',
+      unit: 'core',
       color: 'orange',
     },
   ];
