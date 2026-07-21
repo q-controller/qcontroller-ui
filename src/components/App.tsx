@@ -7,6 +7,8 @@ import {
   Menu,
   ActionIcon,
   Text,
+  useMantineColorScheme,
+  useComputedColorScheme,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
@@ -14,6 +16,8 @@ import {
   IconPhoto,
   IconUserCircle,
   IconLogout,
+  IconMoon,
+  IconSun,
 } from '@tabler/icons-react';
 import { Outlet, Link, useLocation } from 'react-router';
 import { DASHBOARD_PATH, IMAGES_PATH } from '@/common/paths';
@@ -23,6 +27,8 @@ export default function App() {
   const [opened, { toggle }] = useDisclosure(false);
   const location = useLocation();
   const { identity, logout } = useAuth();
+  const { setColorScheme } = useMantineColorScheme();
+  const colorScheme = useComputedColorScheme('light');
 
   return (
     <AppShell
@@ -34,7 +40,7 @@ export default function App() {
         collapsed: { mobile: !opened },
       }}
     >
-      <AppShell.Header bg="blue.7" px="md">
+      <AppShell.Header bg="var(--color-semantic-surface-header)" px="md">
         <Group h="100%" justify="space-between">
           <Group>
             <Burger
@@ -42,51 +48,68 @@ export default function App() {
               onClick={toggle}
               hiddenFrom="sm"
               size="sm"
-              color="white"
+              color="var(--color-semantic-text-on-header)"
             />
-            <Title order={3} c="white">
+            <Title order={3} c="var(--color-semantic-text-on-header)">
               VM Control Panel
             </Title>
           </Group>
-          {identity && (
-            <Menu position="bottom-end" withArrow>
-              <Menu.Target>
-                <ActionIcon
-                  variant="subtle"
-                  c="white"
-                  size="lg"
-                  aria-label="User menu"
-                >
-                  <IconUserCircle size={24} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Label>
-                  <Text size="sm" fw={500}>
-                    {identity.name || identity.email || identity.subject}
-                  </Text>
-                  {identity.email && identity.name && (
-                    <Text size="xs" c="dimmed">
-                      {identity.email}
+          <Group gap="xs">
+            <ActionIcon
+              variant="subtle"
+              c="var(--color-semantic-text-on-header)"
+              size="lg"
+              aria-label="Toggle color scheme"
+              onClick={() =>
+                setColorScheme(colorScheme === 'light' ? 'dark' : 'light')
+              }
+            >
+              {colorScheme === 'light' ? (
+                <IconMoon size={20} />
+              ) : (
+                <IconSun size={20} />
+              )}
+            </ActionIcon>
+            {identity && (
+              <Menu position="bottom-end" withArrow>
+                <Menu.Target>
+                  <ActionIcon
+                    variant="subtle"
+                    c="var(--color-semantic-text-on-header)"
+                    size="lg"
+                    aria-label="User menu"
+                  >
+                    <IconUserCircle size={24} />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>
+                    <Text size="sm" fw={500}>
+                      {identity.name || identity.email || identity.subject}
                     </Text>
-                  )}
-                </Menu.Label>
-                <Menu.Divider />
-                <Menu.Item
-                  leftSection={<IconLogout size={14} />}
-                  onClick={() => {
-                    void logout();
-                  }}
-                >
-                  Log out
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          )}
+                    {identity.email && identity.name && (
+                      <Text size="xs" c="dimmed">
+                        {identity.email}
+                      </Text>
+                    )}
+                  </Menu.Label>
+                  <Menu.Divider />
+                  <Menu.Item
+                    leftSection={<IconLogout size={14} />}
+                    onClick={() => {
+                      void logout();
+                    }}
+                  >
+                    Log out
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            )}
+          </Group>
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar bg="gray.0" p="md">
+      <AppShell.Navbar bg="var(--color-semantic-surface-page)" p="md">
         <NavLink
           label="Dashboard"
           mb="xs"

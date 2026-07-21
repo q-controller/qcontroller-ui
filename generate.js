@@ -37,3 +37,7 @@ execSync(
 execSync('style-dictionary build --config style-dictionary.config.mjs', {
   stdio: 'inherit',
 });
+
+execSync('style-dictionary build --config style-dictionary.dark.config.mjs', {
+  stdio: 'inherit',
+});

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "generate": "node ./generate.js",
-    "generate:tokens": "style-dictionary build --config style-dictionary.config.mjs",
+    "generate:tokens": "style-dictionary build --config style-dictionary.config.mjs && style-dictionary build --config style-dictionary.dark.config.mjs",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "prettier --check . && eslint .",

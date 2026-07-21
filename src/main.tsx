@@ -21,7 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <MantineProvider
       theme={theme}
-      defaultColorScheme="light"
+      defaultColorScheme="auto"
       // No forceColorScheme – let it auto-detect
       // Globals are now via the CSS import above
     >

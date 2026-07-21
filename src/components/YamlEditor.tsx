@@ -1,6 +1,9 @@
 import React from 'react';
-import { Text } from '@mantine/core';
+import { Text, useComputedColorScheme } from '@mantine/core';
 const CodeMirror = React.lazy(() => import('@uiw/react-codemirror'));
+import { oneDarkHighlightStyle } from '@codemirror/theme-one-dark';
+import { syntaxHighlighting } from '@codemirror/language';
+import { EditorView } from '@codemirror/view';
 import { yaml as yamlMode } from '@codemirror/lang-yaml';
 import { linter, type Diagnostic } from '@codemirror/lint';
 import YAML, { YAMLError } from 'yaml';
@@ -42,6 +45,26 @@ const yamlLinter = linter((view) => {
   return diagnostics;
 });
 
+// Dark chrome comes entirely from the semantic tokens — the same card surface
+// the stdout/stderr terminals use — with only one-dark's syntax colours on top,
+// so there is no competing background rule from a prebuilt editor theme.
+const darkChrome = EditorView.theme(
+  {
+    '&': {
+      backgroundColor: 'var(--color-semantic-surface-card)',
+      color: 'var(--color-semantic-text-primary)',
+    },
+    '.cm-content': { caretColor: 'var(--color-semantic-text-primary)' },
+    '.cm-gutters': {
+      backgroundColor: 'var(--color-semantic-surface-card)',
+      color: 'var(--color-semantic-text-muted)',
+      border: 'none',
+    },
+  },
+  { dark: true }
+);
+const darkTheme = [darkChrome, syntaxHighlighting(oneDarkHighlightStyle)];
+
 export interface YamlEditorProps {
   value: string;
   onChange: (val: string) => void;
@@ -63,6 +86,7 @@ export default function YamlEditor({
   maxHeight = '300px',
   style = {},
 }: YamlEditorProps) {
+  const colorScheme = useComputedColorScheme('light');
   return (
     <>
       {label && <Text mb={4}>{label}</Text>}
@@ -72,6 +96,7 @@ export default function YamlEditor({
         minHeight={minHeight}
         maxHeight={maxHeight}
         extensions={[yamlMode(), yamlLinter]}
+        theme={colorScheme === 'dark' ? darkTheme : 'light'}
         onChange={onChange}
         editable={editable}
         style={{

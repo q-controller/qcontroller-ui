@@ -1,0 +1,217 @@
+{
+  "$description": "Dark-scheme override set. NOT standalone: always build as a deep-merge over tokens.json.",
+  "color": {
+    "$type": "color",
+    "blue": {
+      "50": {
+        "$value": "#dce6f1"
+      },
+      "100": {
+        "$value": "#b8cde3"
+      },
+      "200": {
+        "$value": "#9bb7d4"
+      },
+      "300": {
+        "$value": "#7da1c4"
+      },
+      "400": {
+        "$value": "#648db2"
+      },
+      "500": {
+        "$value": "#527c9f"
+      },
+      "600": {
+        "$value": "#446b8b"
+      },
+      "700": {
+        "$value": "#3a5b76"
+      },
+      "800": {
+        "$value": "#2f4a60"
+      },
+      "900": {
+        "$value": "#263b4d"
+      },
+      "$description": "Muted steel-blue ramp; saturated brand blue glares on dark surfaces"
+    },
+    "dark": {
+      "$description": "Mantine dark-scheme surface/text palette (theme.colors.dark)",
+      "0": { "$value": "{color.gray.100}" },
+      "1": { "$value": "{color.gray.300}" },
+      "2": { "$value": "{color.gray.600}" },
+      "3": { "$value": "#696969" },
+      "4": { "$value": "#373a40" },
+      "5": { "$value": "#25262b" },
+      "6": { "$value": "#1a1b1e" },
+      "7": { "$value": "#141517" },
+      "8": { "$value": "#101113" },
+      "9": { "$value": "#0b0c0d" }
+    },
+    "cyan": {
+      "50": {
+        "$value": "{color.blue.50}"
+      },
+      "100": {
+        "$value": "{color.blue.100}"
+      },
+      "200": {
+        "$value": "{color.blue.200}"
+      },
+      "300": {
+        "$value": "{color.blue.300}"
+      },
+      "400": {
+        "$value": "{color.blue.400}"
+      },
+      "500": {
+        "$value": "{color.blue.500}"
+      },
+      "600": {
+        "$value": "{color.blue.600}"
+      },
+      "700": {
+        "$value": "{color.blue.700}"
+      },
+      "800": {
+        "$value": "{color.blue.800}"
+      },
+      "900": {
+        "$value": "{color.blue.900}"
+      },
+      "$description": "Blue-family accents collapse to the same steel ramp in dark"
+    },
+    "semantic": {
+      "surface": {
+        "page": {
+          "$value": "{color.dark.7}"
+        },
+        "card": {
+          "$value": "{color.dark.6}"
+        },
+        "header": {
+          "$value": "{color.blue.800}"
+        }
+      },
+      "border": {
+        "default": {
+          "$value": "#2c2e33"
+        },
+        "strong": {
+          "$value": "#373a40"
+        }
+      },
+      "text": {
+        "primary": {
+          "$value": "{color.gray.100}"
+        },
+        "secondary": {
+          "$value": "{color.gray.400}"
+        },
+        "muted": {
+          "$value": "{color.gray.600}"
+        },
+        "onHeader": {
+          "$value": "{color.gray.100}"
+        }
+      },
+      "accent": {
+        "default": {
+          "$value": "{color.blue.800}",
+          "$description": "Steel filled, matching Mantine's dark primary shade so token-styled and Mantine-styled primaries are identical."
+        },
+        "hover": {
+          "$value": "{color.blue.900}"
+        },
+        "onAccent": {
+          "$value": "{color.gray.0}"
+        }
+      },
+      "vm": {
+        "running": {
+          "indicator": {
+            "$value": "{color.green.500}"
+          },
+          "text": {
+            "$value": "{color.green.300}"
+          },
+          "bg": {
+            "$value": "#2f9e4429"
+          }
+        },
+        "stopped": {
+          "indicator": {
+            "$value": "{color.gray.500}"
+          },
+          "text": {
+            "$value": "{color.gray.400}"
+          },
+          "bg": {
+            "$value": "#adb5bd1f"
+          }
+        },
+        "pending": {
+          "indicator": {
+            "$value": "{color.orange.400}"
+          },
+          "text": {
+            "$value": "{color.orange.300}"
+          },
+          "bg": {
+            "$value": "#f08c0029"
+          }
+        },
+        "error": {
+          "indicator": {
+            "$value": "{color.red.500}"
+          },
+          "text": {
+            "$value": "{color.red.300}"
+          },
+          "bg": {
+            "$value": "#e0313129"
+          }
+        }
+      },
+      "danger": {
+        "text": {
+          "$value": "{color.red.400}"
+        },
+        "border": {
+          "$value": "#e0313152"
+        },
+        "solid": {
+          "$value": "{color.red.900}"
+        },
+        "solidHover": {
+          "$value": "{color.red.800}"
+        },
+        "onSolid": {
+          "$value": "{color.gray.100}"
+        }
+      }
+    }
+  },
+  "shadow": {
+    "$type": "shadow",
+    "$description": "Explicitly flattened in dark: elevation comes from surface steps + borders, not shadows.",
+    "card": {
+      "$value": {
+        "color": "#00000000",
+        "offsetX": "0px",
+        "offsetY": "0px",
+        "blur": "0px",
+        "spread": "0px"
+      }
+    },
+    "raised": {
+      "$value": {
+        "color": "#00000066",
+        "offsetX": "0px",
+        "offsetY": "2px",
+        "blur": "8px",
+        "spread": "0px"
+      }
+    }
+  }
+}
