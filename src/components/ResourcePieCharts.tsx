@@ -77,14 +77,21 @@ function ResourceCard({
           </>
         ) : (
           <>
-            <ThemeIcon color={color} size={64} radius="xl" variant="light">
-              {icon}
+            <ThemeIcon color={color} size={120} radius="xl" variant="light">
+              <Stack gap={4} align="center">
+                {React.isValidElement(icon)
+                  ? React.cloneElement(
+                      icon as React.ReactElement<{ size?: number }>,
+                      { size: 36 }
+                    )
+                  : icon}
+                <Text fw={700} size="lg">
+                  {data.some((d) => d.used !== undefined)
+                    ? prettyBytes(totalAllocated, { binary: true })
+                    : `${totalAllocated}${unit}`}
+                </Text>
+              </Stack>
             </ThemeIcon>
-            <Text fw={700} size="xl">
-              {data.some((d) => d.used !== undefined)
-                ? prettyBytes(totalAllocated, { binary: true })
-                : `${totalAllocated}${unit}`}
-            </Text>
             <Text size="sm" c="dimmed">
               allocated
             </Text>
