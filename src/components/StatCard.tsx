@@ -1,4 +1,5 @@
 import { Text, Paper, Group, ThemeIcon } from '@mantine/core';
+import { fontWeight } from '@/theme';
 
 export default function StatCard({
   title,
@@ -15,10 +16,14 @@ export default function StatCard({
     <Paper shadow="xs" p="md" radius="md" withBorder>
       <Group justify="space-between" align="flex-start" wrap="nowrap">
         <div style={{ flex: 1, minWidth: 0 }}>
-          <Text c="dimmed" size="sm" tt="uppercase" fw={700} mb={2}>
+          <Text c="dimmed" size="sm" tt="uppercase" fw={fontWeight.bold} mb={2}>
             {title}
           </Text>
-          <Text fw={700} size="xl" style={{ wordBreak: 'break-word' }}>
+          <Text
+            fw={fontWeight.bold}
+            size="xl"
+            style={{ wordBreak: 'break-word' }}
+          >
             {value}
           </Text>
         </div>

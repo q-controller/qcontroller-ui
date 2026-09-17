@@ -14,6 +14,7 @@ import { IconServer, IconNetwork } from '@tabler/icons-react';
 import { controllerClient } from '@/common/controller-client';
 import type { SettingsV1Node } from '@/common/controller-client';
 import { notifications } from '@mantine/notifications';
+import { fontWeight } from '@/theme';
 
 export default function Nodes() {
   const [nodes, setNodes] = useState<SettingsV1Node[]>([]);
@@ -52,7 +53,7 @@ export default function Nodes() {
         {nodes.map((node) => (
           <Paper key={node.name} shadow="xs" p="md" radius="md" withBorder>
             <Group justify="space-between" align="flex-start" mb="sm">
-              <Text fw={700} size="lg">
+              <Text fw={fontWeight.bold} size="lg">
                 {node.name}
               </Text>
               <ThemeIcon color="cyan" size={32} radius="md">

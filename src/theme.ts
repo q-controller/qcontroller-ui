@@ -19,6 +19,15 @@ const fontStack = (t: Token) =>
     .map((f) => (f.includes(' ') ? `'${f}'` : f))
     .join(', ');
 
+const weight = (t: Token) => Number(t.$value);
+
+export const fontWeight = {
+  regular: weight(tokens.font.weight.regular),
+  medium: weight(tokens.font.weight.medium),
+  semibold: weight(tokens.font.weight.semibold),
+  bold: weight(tokens.font.weight.bold),
+};
+
 const gray = tokens.color.gray;
 const white = color(gray[0]);
 
@@ -93,6 +102,7 @@ export const theme = createTheme({
     lg: dim(tokens.font.size.lg),
     xl: dim(tokens.font.size.xl),
   },
+  // Mantine 9 changed its own default to 'md'; this keeps the tighter corners.
   defaultRadius: 'sm',
   radius: {
     sm: dim(tokens.radius.sm),

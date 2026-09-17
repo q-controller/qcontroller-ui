@@ -22,6 +22,7 @@ import {
 import { Outlet, Link, useLocation } from 'react-router';
 import { DASHBOARD_PATH, IMAGES_PATH } from '@/common/paths';
 import { useAuth } from '@/common/auth-context';
+import { fontWeight } from '@/theme';
 
 export default function App() {
   const [opened, { toggle }] = useDisclosure(false);
@@ -84,7 +85,7 @@ export default function App() {
                 </Menu.Target>
                 <Menu.Dropdown>
                   <Menu.Label>
-                    <Text size="sm" fw={500}>
+                    <Text size="sm" fw={fontWeight.medium}>
                       {identity.name || identity.email || identity.subject}
                     </Text>
                     {identity.email && identity.name && (
