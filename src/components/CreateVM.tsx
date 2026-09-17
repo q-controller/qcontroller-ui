@@ -193,12 +193,12 @@ export default function CreateVMWidget({
         label="VM Name"
         placeholder="Enter VM name"
         value={form.name || ''}
-        onChange={(e) =>
-          setForm((f) => ({
-            ...f,
-            name: e.currentTarget?.value,
-          }))
-        }
+        onChange={(e) => {
+          // Read before the updater runs: React clears currentTarget once the
+          // listener returns, and the updater can run later, during render.
+          const value = e.currentTarget.value;
+          setForm((f) => ({ ...f, name: value }));
+        }}
         error={nameError}
         disabled={loading}
         required
@@ -234,9 +234,10 @@ export default function CreateVMWidget({
       <Checkbox
         label="Start after creation"
         checked={form.start || false}
-        onChange={(e) =>
-          setForm((f) => ({ ...f, start: e.currentTarget.checked }))
-        }
+        onChange={(e) => {
+          const checked = e.currentTarget.checked;
+          setForm((f) => ({ ...f, start: checked }));
+        }}
         disabled={loading}
       />
       <Stack gap="xs">
