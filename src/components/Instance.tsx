@@ -41,10 +41,10 @@ import { controllerClient } from '@/common/controller-client';
 import type { ServicesV1Info } from '@/common/controller-client';
 import { VMEvent_EventType } from '@/common/updates';
 import { State, stateFromJSON } from '@/common/updates';
-import tokens from '@/generated/tokens';
 import { notifications } from '@mantine/notifications';
 import prettyBytes from 'pretty-bytes';
 import { mbToBytes } from '@/common/unit-conversion';
+import { fontWeight } from '@/theme';
 
 interface UpdateAction {
   type: VMEvent_EventType.EVENT_TYPE_UPDATED;
@@ -95,7 +95,7 @@ const getStatusBadge = (status: string) => {
           color: `var(--color-semantic-vm-${kind}-text)`,
           borderRadius: 'var(--radius-pill)',
           fontSize: 'var(--font-size-xs)',
-          fontWeight: Number(tokens.font.weight.semibold.$value),
+          fontWeight: fontWeight.semibold,
           textTransform: 'uppercase',
         },
       }}
@@ -306,7 +306,7 @@ export default function Instance({
         >
           <Stack gap="lg">
             <Group>
-              <Text fw={500}>Status:</Text>
+              <Text fw={fontWeight.medium}>Status:</Text>
               {getStatusBadge(state.info?.status?.state ?? 'Unknown')}
               {state.node && (
                 <Badge color="cyan" variant="light">
@@ -320,14 +320,19 @@ export default function Instance({
                 {state.info?.spec?.vm.cpus && (
                   <Paper shadow="xs" p="md" radius="md" withBorder>
                     <Group justify="space-between" align="flex-start" mb="sm">
-                      <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+                      <Text
+                        c="dimmed"
+                        size="sm"
+                        tt="uppercase"
+                        fw={fontWeight.bold}
+                      >
                         CPUs
                       </Text>
                       <ThemeIcon color="orange" size={32} radius="md">
                         <IconCpu size={18} />
                       </ThemeIcon>
                     </Group>
-                    <Text fw={700} size="xl">
+                    <Text fw={fontWeight.bold} size="xl">
                       {state.info?.spec?.vm.cpus} cores
                     </Text>
                   </Paper>
@@ -364,10 +369,15 @@ export default function Instance({
                           wrap="nowrap"
                         >
                           <Stack gap={4}>
-                            <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+                            <Text
+                              c="dimmed"
+                              size="sm"
+                              tt="uppercase"
+                              fw={fontWeight.bold}
+                            >
                               Memory
                             </Text>
-                            <Text fw={700} size="xl">
+                            <Text fw={fontWeight.bold} size="xl">
                               {hasUsage
                                 ? prettyBytes(used, { binary: true })
                                 : allocated}
@@ -383,7 +393,11 @@ export default function Instance({
                               roundCaps
                               sections={[{ value: usedPct, color: 'blue' }]}
                               label={
-                                <Text ta="center" size="xs" fw={700}>
+                                <Text
+                                  ta="center"
+                                  size="xs"
+                                  fw={fontWeight.bold}
+                                >
                                   {usedPct}%
                                 </Text>
                               }
@@ -426,10 +440,15 @@ export default function Instance({
                           wrap="nowrap"
                         >
                           <Stack gap={4}>
-                            <Text c="dimmed" size="sm" tt="uppercase" fw={700}>
+                            <Text
+                              c="dimmed"
+                              size="sm"
+                              tt="uppercase"
+                              fw={fontWeight.bold}
+                            >
                               Disk
                             </Text>
-                            <Text fw={700} size="xl">
+                            <Text fw={fontWeight.bold} size="xl">
                               {hasUsage
                                 ? prettyBytes(used, { binary: true })
                                 : allocated}
@@ -445,7 +464,11 @@ export default function Instance({
                               roundCaps
                               sections={[{ value: usedPct, color: 'green' }]}
                               label={
-                                <Text ta="center" size="xs" fw={700}>
+                                <Text
+                                  ta="center"
+                                  size="xs"
+                                  fw={fontWeight.bold}
+                                >
                                   {usedPct}%
                                 </Text>
                               }
@@ -474,7 +497,7 @@ export default function Instance({
                   <ThemeIcon color="cyan" size={28} radius="md" variant="light">
                     <IconNetwork size={16} />
                   </ThemeIcon>
-                  <Text fw={500}>Network</Text>
+                  <Text fw={fontWeight.medium}>Network</Text>
                 </Group>
                 <Stack gap="xs">
                   {state.info?.status?.runtimeInfo?.ipaddresses &&
@@ -515,7 +538,7 @@ export default function Instance({
 
             {state.info?.spec?.cloudInit && (
               <Card withBorder radius="sm" p="md">
-                <Text fw={500} mb="sm">
+                <Text fw={fontWeight.medium} mb="sm">
                   Cloud-init
                 </Text>
                 <Stack gap="xs">

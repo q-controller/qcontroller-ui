@@ -19,6 +19,7 @@ import {
 import type { Stats } from '@/common/stats';
 import prettyBytes from 'pretty-bytes';
 import pluralize from 'pluralize';
+import { fontWeight } from '@/theme';
 
 interface VMData {
   label: string;
@@ -66,7 +67,7 @@ function ResourceCard({
               roundCaps
               sections={[{ value: usedPct, color }]}
               label={
-                <Text ta="center" fw={700} size="lg">
+                <Text ta="center" fw={fontWeight.bold} size="lg">
                   {usedPct}%
                 </Text>
               }
@@ -86,7 +87,7 @@ function ResourceCard({
                       { size: 36 }
                     )
                   : icon}
-                <Text fw={700} size="lg">
+                <Text fw={fontWeight.bold} size="lg">
                   {data.some((d) => d.used !== undefined)
                     ? prettyBytes(totalAllocated, { binary: true })
                     : pluralize(unit, totalAllocated, true)}
@@ -126,7 +127,11 @@ function ResourceCard({
                     {item.label}
                   </Text>
                 </Group>
-                <Text size="sm" fw={500} style={{ flexShrink: 0 }}>
+                <Text
+                  size="sm"
+                  fw={fontWeight.medium}
+                  style={{ flexShrink: 0 }}
+                >
                   {hasItemUsage
                     ? `${prettyBytes(item.used!, { binary: true })} / ${prettyBytes(item.value, { binary: true })}`
                     : item.used !== undefined

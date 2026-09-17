@@ -18,6 +18,7 @@ import {
 import { IconPhoto, IconTrash, IconUpload } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { imageClient, VMImage } from '@/common/image-client';
+import { fontWeight } from '@/theme';
 
 const UI_TEXTS = {
   UPLOAD_BUTTON: 'Add VM Image',
@@ -186,7 +187,7 @@ export default function Images() {
                   <IconPhoto size={16} />
                 </ThemeIcon>
                 <Stack gap={2} style={{ flex: 1 }}>
-                  <Text fw={500} size="sm" truncate="end">
+                  <Text fw={fontWeight.medium} size="sm" truncate="end">
                     {selectedFile.name}
                   </Text>
                   <Text size="xs" c="dimmed">
@@ -226,7 +227,7 @@ export default function Images() {
 
       <Group justify="space-between" align="center">
         <div>
-          <Text size="lg" fw={600}>
+          <Text size="lg" fw={fontWeight.semibold}>
             VM Images
           </Text>
           <Text size="sm" c="dimmed">
@@ -247,7 +248,7 @@ export default function Images() {
               <IconPhoto size={30} />
             </ThemeIcon>
             <Stack align="center" gap="xs">
-              <Text fw={500} size="lg">
+              <Text fw={fontWeight.medium} size="lg">
                 No VM images uploaded
               </Text>
               <Text c="dimmed" ta="center" size="sm">
@@ -282,7 +283,7 @@ export default function Images() {
                   >
                     <Table.Td>
                       <Group gap="xs" align="center">
-                        <Text fw={500} size="sm">
+                        <Text fw={fontWeight.medium} size="sm">
                           {img.id}
                         </Text>
                       </Group>
