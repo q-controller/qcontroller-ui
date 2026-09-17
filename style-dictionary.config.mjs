@@ -1,5 +1,3 @@
-import StyleDictionary from 'style-dictionary';
-
 export default {
   source: ['design/tokens.json'],
   platforms: {
