@@ -4,8 +4,8 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useReducer,
-  useRef,
   useState,
 } from 'react';
 import {
@@ -32,7 +32,8 @@ import {
   IconDatabase,
   IconNetwork,
 } from '@tabler/icons-react';
-import { LogTerminal, type LogTerminalHandle } from '@/components/InstanceLogs';
+import { LogView } from '@/components/InstanceLogs';
+import { LogSource } from '@/common/log-source';
 import Snapshots from '@/components/Snapshots';
 import { Kind } from '@/generated/proto/services/process/v1/messages';
 import { UpdatesContext } from '@/common/updates-context';
@@ -138,20 +139,21 @@ export default function Instance({
   // Mount the terminals only once a logs tab is opened, then keep them mounted
   // so neither stream is dropped while the other tab is active.
   const [logsOpened, setLogsOpened] = useState(false);
-  const stdoutRef = useRef<LogTerminalHandle>(null);
-  const stderrRef = useRef<LogTerminalHandle>(null);
+  const stdoutLog = useMemo(() => new LogSource(), []);
+  const stderrLog = useMemo(() => new LogSource(), []);
 
   const onReset = useCallback(() => {
-    stdoutRef.current?.clear();
-    stderrRef.current?.clear();
-  }, []);
-  const onData = useCallback((kind: Kind, data: string, rotated: boolean) => {
-    const term = kind === Kind.KIND_STDERR ? stderrRef : stdoutRef;
-    if (rotated) {
-      term.current?.clear();
-    }
-    term.current?.write(data);
-  }, []);
+    stdoutLog.reset();
+    stderrLog.reset();
+  }, [stdoutLog, stderrLog]);
+  // Rotation is ignored: history lives client-side, a restarted VM appends.
+  const onData = useCallback(
+    (kind: Kind, data: Uint8Array) => {
+      const log = kind === Kind.KIND_STDERR ? stderrLog : stdoutLog;
+      log.ingest(data);
+    },
+    [stdoutLog, stderrLog]
+  );
 
   // Stream while the terminals are mounted (i.e. logs were opened) and the node
   // is known. Tied to logsOpened, not the active tab, so flipping between Info
@@ -563,10 +565,10 @@ export default function Instance({
         </Tabs.Panel>
 
         <Tabs.Panel value="stdout" style={fillColumn}>
-          {logsOpened && <LogTerminal ref={stdoutRef} />}
+          {logsOpened && <LogView source={stdoutLog} label="stdout logs" />}
         </Tabs.Panel>
         <Tabs.Panel value="stderr" style={fillColumn}>
-          {logsOpened && <LogTerminal ref={stderrRef} />}
+          {logsOpened && <LogView source={stderrLog} label="stderr logs" />}
         </Tabs.Panel>
         <Tabs.Panel
           value="snapshots"
