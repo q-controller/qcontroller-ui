@@ -1,95 +1,42 @@
-import { useEffect, useImperativeHandle, useRef, type Ref } from 'react';
-import { useComputedColorScheme, useMantineTheme } from '@mantine/core';
-import { Terminal } from '@xterm/xterm';
-import { FitAddon } from '@xterm/addon-fit';
-import '@xterm/xterm/css/xterm.css';
+import { VirtualTable } from '@krjakbrjak/virtualtable';
 
-export interface LogTerminalHandle {
-  write: (data: string) => void;
-  clear: () => void;
-}
+import { LogSource, type LogRow } from '@/common/log-source';
+import { fontWeight } from '@/theme';
 
-// Resolve the semantic surface/text tokens for the active colour scheme;
-// xterm needs concrete colour values, not CSS variables.
-const terminalTheme = () => {
-  const style = getComputedStyle(document.documentElement);
-  return {
-    background: style.getPropertyValue('--color-semantic-surface-card').trim(),
-    foreground: style.getPropertyValue('--color-semantic-text-primary').trim(),
-  };
-};
-
-// LogTerminal is a read-only xterm terminal. It interprets the full ANSI
-// stream (colours, cursor moves, screen clears) the way a real serial console
-// would.
-export function LogTerminal({
-  ref,
-  scrollback = 10000,
-  fontSize = 12,
+// The source outlives this component, so closing and reopening the tab loses
+// nothing.
+export function LogView({
+  source,
+  label,
 }: {
-  ref?: Ref<LogTerminalHandle>;
-  scrollback?: number;
-  fontSize?: number;
+  source: LogSource;
+  label: string;
 }) {
-  const theme = useMantineTheme();
-  const scheme = useComputedColorScheme('light');
-  const containerRef = useRef<HTMLDivElement>(null);
-  const termRef = useRef<Terminal | null>(null);
-
-  useEffect(() => {
-    const term = new Terminal({
-      convertEol: true, // treat bare \n as \r\n so console output lines up
-      disableStdin: true,
-      scrollback,
-      fontSize,
-      fontFamily: theme.fontFamilyMonospace,
-      theme: terminalTheme(),
-    });
-    const fit = new FitAddon();
-    term.loadAddon(fit);
-
-    const container = containerRef.current;
-    if (container) {
-      term.open(container);
-    }
-    termRef.current = term;
-
-    // Refit whenever the container resizes — including when its tab goes from
-    // hidden (0x0) to visible, which is when fitting actually has dimensions.
-    const ro = new ResizeObserver(() => {
-      try {
-        fit.fit();
-      } catch {
-        // container not laid out yet (hidden tab) — refit on the next resize.
-      }
-    });
-    if (container) {
-      ro.observe(container);
-    }
-
-    return () => {
-      ro.disconnect();
-      term.dispose();
-      termRef.current = null;
-    };
-  }, [theme.fontFamilyMonospace, scrollback, fontSize]);
-
-  // Restyle in place when the colour scheme changes so the terminal tracks the
-  // app's light/dark mode without being rebuilt.
-  useEffect(() => {
-    const term = termRef.current;
-    if (!term) return;
-    term.options.theme = terminalTheme();
-  }, [scheme]);
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      write: (data: string) => termRef.current?.write(data),
-      clear: () => termRef.current?.clear(),
-    }),
-    []
+  return (
+    <div className="log-view">
+      <VirtualTable<LogRow>
+        fetcher={source}
+        selectable={false}
+        aria-label={label}
+        renderer={(row) => (
+          <div className="log-line">
+            {row?.length
+              ? row.map((span, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      color: span.fg,
+                      backgroundColor: span.bg,
+                      fontWeight: span.bold ? fontWeight.semibold : undefined,
+                    }}
+                  >
+                    {span.text}
+                  </span>
+                ))
+              : '\u00a0'}
+          </div>
+        )}
+      />
+    </div>
   );
-
-  return <div ref={containerRef} style={{ flex: 1, minHeight: 0 }} />;
 }

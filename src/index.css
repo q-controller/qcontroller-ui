@@ -28,3 +28,18 @@
 .action-danger-solid:not(:disabled):not([data-disabled]):hover {
   background-color: var(--color-semantic-danger-solid-hover);
 }
+
+/* Instance log view: virtualized monospace lines on the card surface. */
+.log-view {
+  flex: 1;
+  min-height: 0;
+  background-color: var(--color-semantic-surface-card);
+}
+.log-line {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-semantic-text-primary);
+  white-space: pre;
+  padding: 0 8px;
+}

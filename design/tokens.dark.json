@@ -190,6 +190,24 @@
           "$value": "{color.gray.100}"
         }
       }
+    },
+    "ansi": {
+      "black": { "$value": "#000000" },
+      "red": { "$value": "#cd3131" },
+      "green": { "$value": "#0dbc79" },
+      "yellow": { "$value": "#e5e510" },
+      "blue": { "$value": "#2472c8" },
+      "magenta": { "$value": "#bc3fbc" },
+      "cyan": { "$value": "#11a8cd" },
+      "white": { "$value": "#e5e5e5" },
+      "bright-black": { "$value": "#666666" },
+      "bright-red": { "$value": "#f14c4c" },
+      "bright-green": { "$value": "#23d18b" },
+      "bright-yellow": { "$value": "#f5f543" },
+      "bright-blue": { "$value": "#3b8eea" },
+      "bright-magenta": { "$value": "#d670d6" },
+      "bright-cyan": { "$value": "#29b8db" },
+      "bright-white": { "$value": "#ffffff" }
     }
   },
   "shadow": {
