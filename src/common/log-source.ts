@@ -77,6 +77,20 @@ export class LogSource implements DataSource<LogRow> {
   private listeners = new Set<(change: Change) => void>();
 
   constructor() {
+    // A terminal clears these away; a log view keeps them. Ignore erase
+    // display/scrollback (CSI 2J/3J), full reset (RIS) and the alternate
+    // screen (DECSET 47/1047/1049) so history survives the guest clearing
+    // its console.
+    this.term.parser.registerCsiHandler({ final: 'J' }, (params) => {
+      const p = params.length ? params[0] : 0;
+      return p === 2 || p === 3;
+    });
+    this.term.parser.registerEscHandler({ final: 'c' }, () => true);
+    const altScreen = (params: (number | number[])[]) =>
+      params.some((p) => p === 47 || p === 1047 || p === 1049);
+    this.term.parser.registerCsiHandler({ prefix: '?', final: 'h' }, altScreen);
+    this.term.parser.registerCsiHandler({ prefix: '?', final: 'l' }, altScreen);
+
     this.term.onScroll(() => {
       const buf = this.term.buffer.active;
       if (buf.baseY > 0) {
