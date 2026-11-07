@@ -11,7 +11,7 @@ import { authMiddleware, csrfHeaderMiddleware } from '@/common/auth-middleware';
 
 // Re-export the generated types under their semantic names so the rest of
 // the SPA doesn't carry the long namespaced identifiers around. These are
-// type-only re-exports — no runtime cost, no duplicate definitions.
+// type-only re-exports: no runtime cost, no duplicate definitions.
 export type Identity = ServicesAuthV1Identity;
 export type AuthProvider = ServicesAuthV1AuthProvider;
 export type AuthConfig = ServicesAuthV1GetConfigResponse;
@@ -46,8 +46,4 @@ export async function logout(): Promise<LogoutResponse> {
   } catch {
     return { logoutUrl: '' };
   }
-}
-
-export function loginUrl(providerName: string): string {
-  return `/auth/login?provider=${encodeURIComponent(providerName)}`;
 }

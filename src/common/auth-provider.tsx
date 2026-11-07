@@ -8,6 +8,7 @@ import {
   type Identity,
 } from '@/common/auth-client';
 import { AuthContext } from '@/common/auth-context';
+import { ResponseError } from '@/generated/controller-client/src';
 import { setOnUnauthorized } from '@/common/auth-middleware';
 import Login from '@/components/Login';
 
@@ -25,10 +26,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const cfg = await getAuthConfig();
         if (cancelled) return;
         setConfig(cfg);
-        if (!cfg.providers || cfg.providers.length === 0) {
-          setStatus('disabled');
-          return;
-        }
         const me = await getMe();
         if (cancelled) return;
         if (me) {
@@ -38,8 +35,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIdentity(null);
           setStatus('unauthed');
         }
-      } catch {
-        if (!cancelled) setStatus('unauthed');
+      } catch (err) {
+        if (cancelled) return;
+        if (err instanceof ResponseError && err.response.status === 404) {
+          setStatus('disabled');
+        } else {
+          setStatus('unauthed');
+        }
       }
     })();
     return () => {

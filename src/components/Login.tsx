@@ -1,7 +1,6 @@
 import { Button, Center, Paper, Stack, Title, Text } from '@mantine/core';
 import { IconLogin } from '@tabler/icons-react';
 import type { AuthProvider } from '@/common/auth-client';
-import { loginUrl } from '@/common/auth-client';
 
 export interface LoginProps {
   providers: AuthProvider[];
@@ -21,16 +20,19 @@ export default function Login({ providers }: LoginProps) {
             </Text>
           ) : (
             providers
-              .filter((p): p is { name: string } => !!p.name)
+              .filter(
+                (p): p is AuthProvider & { name: string; loginUrl: string } =>
+                  !!p.name && !!p.loginUrl
+              )
               .map((p) => (
                 <Button
                   key={p.name}
                   component="a"
-                  href={loginUrl(p.name)}
+                  href={p.loginUrl}
                   leftSection={<IconLogin size={16} />}
                   fullWidth
                 >
-                  Sign in with {p.name}
+                  Sign in with {p.displayName || p.name}
                 </Button>
               ))
           )}

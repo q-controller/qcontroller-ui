@@ -7,7 +7,7 @@ import type { Middleware as ImageMiddleware } from '@/generated/image-client/src
 
 // Both generated clients ship structurally identical Middleware types.
 // Declaring as the intersection lets us hand the same object to both API
-// constructors without a cast — and turns any future divergence into a
+// constructors without a cast, and turns any future divergence into a
 // compile error instead of silent runtime drift.
 type Middleware = ControllerMiddleware & ImageMiddleware;
 
